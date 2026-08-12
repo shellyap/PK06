@@ -56,10 +56,14 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <header class="bg-gradient-to-r from-slate-900 via-spark-900 to-indigo-950 text-white shadow-xl no-print border-b border-slate-800">
+    <header class="bg-gradient-to-r from-slate-900 via-spark-900 to-indigo-950 text-white shadow-xl no-print border-b border-slate-800 relative z-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
-                <div class="p-2.5 bg-spark-600/30 rounded-xl border border-spark-400/30 backdrop-blur-md">
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleSidebar()" class="md:hidden p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="p-2.5 bg-spark-600/30 rounded-xl border border-spark-400/30 backdrop-blur-md hidden sm:block">
                     <i class="fa-solid fa-chart-line text-2xl text-spark-400"></i>
                 </div>
                 <div>
@@ -69,7 +73,7 @@
                         </h1>
                         <span class="text-[10px] bg-spark-500/20 text-spark-300 border border-spark-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Multi-Sektor</span>
                     </div>
-                    <p class="text-xs text-slate-300 font-medium">Sistem Pemantauan Multi-Sektor & Multi-Program PK06-1</p>
+                    <p class="text-xs text-slate-300 font-medium hidden sm:block">Sistem Pemantauan Multi-Sektor & Multi-Program PK06-1</p>
                 </div>
             </div>
 
@@ -77,19 +81,20 @@
             <div class="flex items-center gap-2">
                 <button onclick="openNewProgramModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg transition duration-150 flex items-center gap-2">
                     <i class="fa-solid fa-plus-circle"></i>
-                    <span>+ Program Baru</span>
+                    <span class="hidden sm:inline">Program Baru</span>
                 </button>
-                <button onclick="resetToSampleData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-700 transition">
-                    <i class="fa-solid fa-rotate-right mr-1"></i> Muat Ulang Data
+                <button onclick="resetToSampleData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2" title="Kosongkan Pangkalan Data">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">Muat Ulang / Reset</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <div class="flex-1 flex flex-col md:flex-row w-full mx-auto">
+    <div class="flex-1 flex flex-col md:flex-row w-full mx-auto relative">
 
-        <!-- Left Sidebar Navigation -->
-        <aside class="w-full md:w-64 lg:w-72 bg-white border-r border-slate-200 no-print shrink-0 p-4 space-y-4">
+        <!-- Left Sidebar Navigation (Hidden on mobile by default) -->
+        <aside id="main-sidebar" class="hidden md:flex flex-col w-full md:w-64 lg:w-72 bg-white border-r border-slate-200 no-print shrink-0 p-4 space-y-4 absolute md:relative z-10 h-full shadow-2xl md:shadow-none">
             <div class="px-2 pt-1 pb-2 border-b border-slate-100 flex items-center justify-between">
                 <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Navigasi Utama</span>
                 <span class="text-[10px] bg-spark-100 text-spark-800 font-bold px-2 py-0.5 rounded">SPARK v2.5</span>
@@ -140,19 +145,19 @@
         </aside>
 
         <!-- Right Main Dashboard Content Area -->
-        <div class="flex-1 min-w-0 flex flex-col">
+        <div class="flex-1 min-w-0 flex flex-col w-full">
 
             <div class="bg-slate-900 text-white border-b border-slate-800 shadow-md no-print py-3">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-filter text-spark-400 text-xs"></i>
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Penapis Master:</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-300 shrink-0">Penapis Master:</span>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 max-w-4xl">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 w-full max-w-4xl">
                             <!-- Filter Year -->
                             <div>
-                                <select id="filter-year" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                <select id="filter-year" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500 truncate">
                                     <option value="ALL">Semua Tahun</option>
                                     <option value="2026" selected>2026</option>
                                     <option value="2025">2025</option>
@@ -161,7 +166,7 @@
                             </div>
                             <!-- Filter Month -->
                             <div>
-                                <select id="filter-month" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                <select id="filter-month" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500 truncate">
                                     <option value="ALL" selected>Semua Bulan</option>
                                     <option value="1">Januari</option>
                                     <option value="2">Februari</option>
@@ -179,8 +184,8 @@
                             </div>
                             <!-- Filter Sector -->
                             <div>
-                                <select id="filter-sector" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
-                                    <option value="ALL" selected>Semua Sektor / Unit PPD</option>
+                                <select id="filter-sector" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500 truncate">
+                                    <option value="ALL" selected>Semua Sektor / Unit</option>
                                     <optgroup label="Sektor Utama">
                                         <option value="Sektor Pembelajaran">Sektor Pembelajaran</option>
                                         <option value="Sektor Pengurusan Sekolah">Sektor Pengurusan Sekolah</option>
@@ -193,7 +198,7 @@
                                         <option value="Unit Psikologi & Kaunseling">Unit Psikologi & Kaunseling</option>
                                         <option value="Unit Pendidikan Khas">Unit Pendidikan Khas</option>
                                         <option value="Unit Pendidikan Islam">Unit Pendidikan Islam</option>
-                                        <option value="Unit Sumber & Teknologi Pendidikan">Unit Sumber & Teknologi Pendidikan (USTP)</option>
+                                        <option value="Unit Sumber & Teknologi Pendidikan">Unit Sumber & Teknologi (USTP)</option>
                                         <option value="Unit Kewangan">Unit Kewangan</option>
                                         <option value="Unit Pentadbiran & Am">Unit Pentadbiran & Am</option>
                                     </optgroup>
@@ -201,7 +206,7 @@
                             </div>
                             <!-- Filter Program -->
                             <div>
-                                <select id="filter-program" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                <select id="filter-program" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500 truncate">
                                     <option value="ALL" selected>Semua Program</option>
                                 </select>
                             </div>
@@ -215,19 +220,19 @@
                 <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-slate-500">Paparan Aktif:</span>
-                        <span id="active-filter-label" class="bg-spark-50 text-spark-800 border border-spark-200 font-bold px-2.5 py-1 rounded-md">
+                        <span id="active-filter-label" class="bg-spark-50 text-spark-800 border border-spark-200 font-bold px-2.5 py-1 rounded-md truncate max-w-[200px] sm:max-w-none">
                             Semua Sektor & Program
                         </span>
                     </div>
                     <div class="flex items-center gap-3 text-slate-500 font-medium">
                         <span>Jumlah Responden Tersaring: <strong id="filter-res-count" class="text-slate-900 font-black">0</strong></span>
-                        <span id="firebase-status" class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Connecting...</span>
+                        <span id="firebase-status" class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Loading...</span>
                     </div>
                 </div>
             </div>
 
             <!-- Main Interactive Tabs Content -->
-            <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 overflow-x-hidden">
 
                 <section id="tab-analytics" class="tab-content space-y-6">
                     
@@ -248,7 +253,7 @@
                             <div>
                                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Indeks Kepuasan (%)</p>
                                 <h3 class="text-3xl font-black text-slate-900 mt-1" id="kpi-satisfaction">0.0%</h3>
-                                <p class="text-[11px] text-slate-500 mt-1">Skor 4 & 5 (Setuju/Sangat Setuju)</p>
+                                <p class="text-[11px] text-slate-500 mt-1">Skor 4 & 5 (Setuju)</p>
                             </div>
                             <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-600">
                                 <i class="fa-solid fa-face-smile text-2xl"></i>
@@ -259,20 +264,20 @@
                             <div>
                                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Jumlah Maklumbalas</p>
                                 <h3 class="text-3xl font-black text-slate-900 mt-1" id="kpi-res-total">0</h3>
-                                <p class="text-[11px] text-slate-500 mt-1">Daripada pelbagai program</p>
+                                <p class="text-[11px] text-slate-500 mt-1">Daripada peserta</p>
                             </div>
                             <div class="p-3 bg-indigo-50 rounded-2xl border border-indigo-100 text-indigo-600">
                                 <i class="fa-solid fa-users text-2xl"></i>
                             </div>
                         </div>
 
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                            <div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between overflow-hidden">
+                            <div class="truncate mr-2">
                                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Item Kritikal</p>
                                 <h3 class="text-3xl font-black text-rose-600 mt-1" id="kpi-lowest-score">0.00</h3>
-                                <p class="text-[11px] text-slate-500 mt-1 truncate max-w-[140px]" id="kpi-lowest-item">Perlu Penambahbaikan</p>
+                                <p class="text-[11px] text-slate-500 mt-1 truncate" id="kpi-lowest-item" title="Perlu Penambahbaikan">Perlu Penambahbaikan</p>
                             </div>
-                            <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600">
+                            <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 shrink-0">
                                 <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
                             </div>
                         </div>
@@ -287,7 +292,7 @@
                                     <h3 class="font-bold text-slate-800 text-base">Profil Prestasi 4 Kategori Utam</h3>
                                     <p class="text-xs text-slate-500">Carta Radar purata skor mengikut kategori PK06-1</p>
                                 </div>
-                                <span class="bg-spark-50 text-spark-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-spark-200">Kategori PK06-1</span>
+                                <span class="bg-spark-50 text-spark-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-spark-200 hidden sm:inline-block">Kategori PK06-1</span>
                             </div>
                             <div class="h-64 relative">
                                 <canvas id="chart-radar"></canvas>
@@ -301,7 +306,7 @@
                                     <h3 class="font-bold text-slate-800 text-base">Min Skor Mengikut Kategori</h3>
                                     <p class="text-xs text-slate-500">Perbandingan skor min berasaskan 5 skala Likert</p>
                                 </div>
-                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-emerald-200">Perbandingan Min</span>
+                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-emerald-200 hidden sm:inline-block">Perbandingan Min</span>
                             </div>
                             <div class="h-64 relative">
                                 <canvas id="chart-bar"></canvas>
@@ -314,7 +319,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                             <div>
                                 <h3 class="font-bold text-slate-800 text-base">Analisis Terperinci 18 Item Penilaian PK06-1</h3>
-                                <p class="text-xs text-slate-500">Auto-kiraan min, sisihan piawai, dan peratusan setuju mengikut item</p>
+                                <p class="text-xs text-slate-500">Auto-kiraan min, dan peratusan setuju mengikut item</p>
                             </div>
                             <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 transition flex items-center gap-1.5 w-fit">
                                 <i class="fa-solid fa-print"></i> Cetak Laporan
@@ -322,7 +327,7 @@
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[600px]">
                                 <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
                                     <tr>
                                         <th class="py-3 px-3">Bil</th>
@@ -344,20 +349,20 @@
 
                 <section id="tab-borang" class="tab-content hidden space-y-6">
                     
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 max-w-4xl mx-auto">
+                    <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 max-w-4xl mx-auto w-full">
                         
                         <!-- Form Header -->
                         <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="bg-spark-600 text-white font-black text-[10px] px-2 py-0.5 rounded">BORANG PK06-1</span>
-                                    <h2 class="text-lg font-bold text-slate-900">Borang Penilaian Program UPBMG / PPD</h2>
+                                    <span class="bg-spark-600 text-white font-black text-[10px] px-2 py-0.5 rounded shrink-0">BORANG PK06-1</span>
+                                    <h2 class="text-lg font-bold text-slate-900 leading-tight">Borang Penilaian Program UPBMG / PPD</h2>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-1">Sila isi maklum balas di bawah berdasarkan skala Likert 1 hingga 5.</p>
                             </div>
                             
                             <!-- Participant Link Mode Alert -->
-                            <div id="form-locked-alert" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 rounded-xl flex items-center gap-2">
+                            <div id="form-locked-alert" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 rounded-xl flex items-center gap-2 w-full sm:w-auto">
                                 <i class="fa-solid fa-lock text-amber-600"></i>
                                 <span>Borang dikunci khusus untuk program terpilih.</span>
                             </div>
@@ -367,7 +372,7 @@
                             
                             <!-- Program Selector Input -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <div>
+                                <div class="col-span-1 md:col-span-2">
                                     <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Program / Anjuran *</label>
                                     <select id="form-program-id" required onchange="onFormProgramChange()" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-spark-500">
                                         <!-- Dynamic options -->
@@ -384,7 +389,7 @@
                                     <input type="date" id="form-date" required class="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-800">
                                 </div>
 
-                                <div>
+                                <div class="col-span-1 md:col-span-2">
                                     <label class="block text-xs font-bold text-slate-700 mb-1">Nama Responden / Kod Perkhidmatan (Opsional)</label>
                                     <input type="text" id="form-respondent-name" placeholder="Contoh: Peserta Zon Ranau 01" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5">
                                 </div>
@@ -392,13 +397,10 @@
 
                             <!-- Scale Legend -->
                             <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
-                                <span class="font-bold text-spark-400 uppercase tracking-wider">Petunjuk Skala Likert:</span>
-                                <div class="flex flex-wrap items-center gap-3 font-semibold text-[11px]">
+                                <span class="font-bold text-spark-400 uppercase tracking-wider w-full sm:w-auto">Petunjuk Skala:</span>
+                                <div class="flex flex-wrap items-center gap-2 sm:gap-3 font-semibold text-[10px] sm:text-[11px]">
                                     <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">TB: Tidak Berkenaan</span>
                                     <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">1: Sangat Tidak Setuju</span>
-                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">2: Tidak Setuju</span>
-                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">3: Kurang Setuju</span>
-                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">4: Setuju</span>
                                     <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">5: Sangat Setuju</span>
                                 </div>
                             </div>
@@ -416,7 +418,7 @@
 
                             <!-- Form Actions -->
                             <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
-                                <button type="button" onclick="fillRandomForm()" class="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+                                <button type="button" onclick="fillRandomForm()" class="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 w-full sm:w-auto p-2">
                                     <i class="fa-solid fa-dice text-spark-600"></i> Simulasi Isian Rawak
                                 </button>
                                 
@@ -437,17 +439,12 @@
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                             <div>
-                                <h3 class="font-bold text-slate-800 text-base">Matriks Program Mengikut Sektor / Unit</h3>
-                                <p class="text-xs text-slate-500">Uruskan program, dapatkan Pautan / Kod QR Peserta, dan kemaskini senarai program</p>
+                                <h3 class="font-bold text-slate-800 text-base">Matriks Program Mengikut Sektor PPD</h3>
+                                <p class="text-xs text-slate-500">Uruskan program, dapatkan Pautan / Kod QR Peserta, dan analisa mengikut sektor</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="clearAllPrograms()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-trash-can"></i> Padam Semua Program
-                                </button>
-                                <button onclick="openNewProgramModal()" class="bg-spark-600 hover:bg-spark-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-plus-circle"></i> Tambah Program Baru
-                                </button>
-                            </div>
+                            <button onclick="openNewProgramModal()" class="bg-spark-600 hover:bg-spark-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                                <i class="fa-solid fa-plus-circle"></i> Tambah Program Baru
+                            </button>
                         </div>
 
                         <!-- Sector Overview Cards -->
@@ -463,17 +460,17 @@
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                             <div class="flex items-center gap-3">
-                                <div class="p-3 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20">
+                                <div class="p-3 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20 shrink-0">
                                     <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-slate-900 text-lg">Penjana Laporan & Analisis Penambahbaikan AI</h3>
-                                    <p class="text-xs text-slate-500">Menggunakan model Gemini Flash untuk menjana analisis punca & cadangan tindakan berimpak tinggi</p>
+                                    <h3 class="font-bold text-slate-900 text-lg leading-tight">Penjana Laporan & Analisis Penambahbaikan AI</h3>
+                                    <p class="text-xs text-slate-500 mt-1">Menggunakan model Gemini Flash untuk menjana analisis punca & cadangan tindakan berimpak tinggi berdasarkan data semasa.</p>
                                 </div>
                             </div>
                             
-                            <div class="flex items-center gap-2">
-                                <button onclick="generateAIAnalysis()" id="btn-generate-ai" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <div class="flex items-center gap-2 shrink-0 w-full md:w-auto">
+                                <button onclick="generateAIAnalysis()" id="btn-generate-ai" class="w-full md:w-auto bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-brain"></i>
                                     <span>Jana Analisis AI Sekarang</span>
                                 </button>
@@ -481,11 +478,11 @@
                         </div>
 
                         <!-- AI Output Container -->
-                        <div id="ai-output-container" class="min-h-[250px] bg-slate-50 p-6 rounded-2xl border border-slate-200 text-xs leading-relaxed text-slate-700">
+                        <div id="ai-output-container" class="min-h-[250px] bg-slate-50 p-6 rounded-2xl border border-slate-200 text-xs leading-relaxed text-slate-700 w-full overflow-x-hidden">
                             <div class="text-center py-12 space-y-3">
                                 <i class="fa-solid fa-robot text-4xl text-slate-300"></i>
                                 <h4 class="font-bold text-slate-600 text-sm">Laporan AI Belum Dijana</h4>
-                                <p class="text-slate-400 max-w-md mx-auto">Tentukan penapis sektor atau program di bahagian atas, kemudian tekan butang "Jana Analisis AI Sekarang".</p>
+                                <p class="text-slate-400 max-w-md mx-auto">Tentukan penapis sektor atau program di bahagian atas, kemudian tekan butang "Jana Analisis AI Sekarang" untuk memulakan rangkuman pintar.</p>
                             </div>
                         </div>
                     </div>
@@ -494,32 +491,32 @@
 
                 <section id="tab-data" class="tab-content hidden space-y-6">
                     
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                             <div>
                                 <h3 class="font-bold text-slate-800 text-base">Pangkalan Data Responden & Rekod Penilaian</h3>
                                 <p class="text-xs text-slate-500">Senarai penuh jawapan individu mengikut penapis master aktif</p>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <button onclick="addMockBatch()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
                                     <i class="fa-solid fa-plus"></i> +5 Simulasi Responden
                                 </button>
                                 <button onclick="clearAllData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                                    <i class="fa-solid fa-trash"></i> Kosongkan
+                                    <i class="fa-solid fa-trash"></i> Kosongkan Rekod
                                 </button>
                             </div>
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[700px]">
                                 <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
                                     <tr>
-                                        <th class="py-3 px-3">Tarikh</th>
+                                        <th class="py-3 px-3 w-24">Tarikh</th>
                                         <th class="py-3 px-3">Sektor PPD</th>
                                         <th class="py-3 px-3">Nama Program</th>
-                                        <th class="py-3 px-3 text-center">Purata Skor</th>
+                                        <th class="py-3 px-3 text-center w-24">Purata Skor</th>
                                         <th class="py-3 px-3">Ulasans / Cadangan</th>
-                                        <th class="py-3 px-3 text-center">Tindakan</th>
+                                        <th class="py-3 px-3 text-center w-20">Tindakan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="respondents-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
@@ -534,7 +531,7 @@
             </main>
 
             <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-auto no-print">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                     <p>© 2026 Dashboard SPARK PPD - Pejabat Pendidikan Daerah. Hak Cipta Terpelihara PK06-1.</p>
                     <p class="text-slate-500">Standard Kualiti Penilaian Program UPBMG & Multi-Sektor</p>
                 </div>
@@ -544,13 +541,12 @@
 
     </div> <!-- End Main Flex Container -->
 
-
     <!-- New Program Modal -->
     <div id="new-program-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-900 text-base">Cipta Program Baru PPD</h3>
-                <button onclick="closeNewProgramModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeNewProgramModal()" class="text-slate-400 hover:text-slate-600 p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
             <form onsubmit="handleCreateProgramSubmit(event)" class="space-y-4 text-xs">
@@ -565,11 +561,11 @@
                             <option value="Sektor Pentaksiran & Peperiksaan">Sektor Pentaksiran & Peperiksaan</option>
                             <option value="Sektor Pengurusan">Sektor Pengurusan</option>
                         </optgroup>
-                        <optgroup label="Unit Sokongan PPD">
+                        <optgroup label="Unit Sokongan">
                             <option value="Unit Psikologi & Kaunseling">Unit Psikologi & Kaunseling</option>
                             <option value="Unit Pendidikan Khas">Unit Pendidikan Khas</option>
                             <option value="Unit Pendidikan Islam">Unit Pendidikan Islam</option>
-                            <option value="Unit Sumber & Teknologi Pendidikan">Unit Sumber & Teknologi Pendidikan (USTP)</option>
+                            <option value="Unit Sumber & Teknologi Pendidikan">Unit Sumber & Teknologi (USTP)</option>
                             <option value="Unit Kewangan">Unit Kewangan</option>
                             <option value="Unit Pentadbiran & Am">Unit Pentadbiran & Am</option>
                         </optgroup>
@@ -591,9 +587,9 @@
                     <input type="text" id="new-prog-location" placeholder="Contoh: Bilik Mesyuarat Aras 1" class="w-full border border-slate-300 rounded-xl p-2.5">
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeNewProgramModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold">Batal</button>
-                    <button type="submit" class="px-5 py-2 bg-spark-600 hover:bg-spark-700 text-white rounded-xl font-bold shadow-md">Simpan Program</button>
+                <div class="flex flex-col sm:flex-row items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeNewProgramModal()" class="w-full sm:w-auto px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-bold">Batal</button>
+                    <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-spark-600 hover:bg-spark-700 text-white rounded-xl font-bold shadow-md">Simpan Program</button>
                 </div>
             </form>
         </div>
@@ -604,7 +600,7 @@
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-200">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <h3 class="font-bold text-slate-900 text-sm">Pautan & Kod QR Peserta</h3>
-                <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
             <div class="space-y-2">
@@ -621,22 +617,45 @@
             <div class="space-y-2">
                 <input type="text" id="share-link-input" readonly class="w-full text-[11px] bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono text-center select-all">
                 <button onclick="copyShareLink()" class="w-full bg-spark-600 hover:bg-spark-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
-                    <i class="fa-solid fa-copy"></i> Salin Pautan Form Peserta
+                    <i class="fa-solid fa-copy"></i> Salin Pautan Form
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Custom Toast Message -->
-    <div id="toast-message" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border border-slate-800 transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-emerald-400"></i>
-        <span id="toast-text">Mesej Notifikasi</span>
+    <div id="toast-message" class="fixed bottom-5 right-5 sm:right-10 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border border-slate-800 transform translate-y-20 opacity-0 transition-all duration-300 z-[100] flex items-center gap-2 max-w-[90vw]">
+        <i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i>
+        <span id="toast-text" class="break-words">Mesej Notifikasi</span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Variables
+        window.dbPrograms = [];
+        window.dbEvaluations = [];
+        let radarChartInstance = null;
+        let barChartInstance = null;
+        let isFirebaseReady = false;
+        let app, db, auth;
+
+        // Ensure App ID is properly scoped for isolation if deployed on Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spark-ppd-app';
+        
+        // Define Firebase Config from user snippet
+        const firebaseConfig = {
+            apiKey: "AIzaSyDe00Snra1uYPv5-JdCl6UW0CqymR3Fe_k",
+            authDomain: "read-6034d.firebaseapp.com",
+            databaseURL: "https://read-6034d-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "read-6034d",
+            storageBucket: "read-6034d.firebasestorage.app",
+            messagingSenderId: "282456310870",
+            appId: "1:282456310870:web:932f8b163d722cbdbda7f7",
+            measurementId: "G-Z78GFTVL74"
+        };
 
         const PK06_ITEMS = [
             { id: 1, cat: "Urus Setia Dan Pengurusan", desc: "Pendaftaran peserta disediakan" },
@@ -659,25 +678,17 @@
             { id: 18, cat: "Bahan", desc: "Jelas" }
         ];
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDe00Snra1uYPv5-JdCl6UW0CqymR3Fe_k",
-            authDomain: "read-6034d.firebaseapp.com",
-            databaseURL: "https://read-6034d-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "read-6034d",
-            storageBucket: "read-6034d.firebasestorage.app",
-            messagingSenderId: "282456310870",
-            appId: "1:282456310870:web:932f8b163d722cbdbda7f7",
-            measurementId: "G-Z78GFTVL74"
+        // Ensure all UI handler functions are explicitly bound to the global window object
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('flex');
+            }
         };
-
-        let app, db, auth;
-        let isFirebaseReady = false;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spark-ppd-app';
-
-        window.dbPrograms = [];
-        window.dbEvaluations = [];
-        let radarChartInstance = null;
-        let barChartInstance = null;
 
         window.switchTab = function(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -686,6 +697,12 @@
             const targetBtn = document.getElementById(`btn-${tabId}`);
             if (targetSection) targetSection.classList.remove('hidden');
             if (targetBtn) targetBtn.classList.add('active');
+
+            // Auto-close sidebar on mobile after navigating
+            if (window.innerWidth < 768) {
+                document.getElementById('main-sidebar').classList.add('hidden');
+                document.getElementById('main-sidebar').classList.remove('flex');
+            }
         };
 
         window.openNewProgramModal = () => document.getElementById('new-program-modal').classList.remove('hidden');
@@ -709,6 +726,7 @@
             document.getElementById('share-modal').classList.remove('hidden');
         };
         window.closeShareModal = () => document.getElementById('share-modal').classList.add('hidden');
+        
         window.copyShareLink = () => {
             document.getElementById('share-link-input').select();
             document.execCommand('copy');
@@ -724,9 +742,9 @@
             window.dbPrograms.forEach(p => html += `<option value="${p.id}">${p.title}</option>`);
             select.innerHTML = html;
 
-            // Dynamically populate sectors dropdown based on active programs to include units
+            // Dynamically populate active sectors including units from available programs
             const activeSectors = [...new Set(window.dbPrograms.map(p => p.sector))];
-            let sectorHtml = '<option value="ALL">Semua Sektor / Unit PPD</option>';
+            let sectorHtml = '<option value="ALL">Semua Sektor / Unit</option>';
             activeSectors.forEach(sec => sectorHtml += `<option value="${sec}">${sec}</option>`);
             sectorSelect.innerHTML = sectorHtml;
         };
@@ -816,7 +834,10 @@
             if(satEl) satEl.innerText = sat.toFixed(1) + "%";
             if(resEl) resEl.innerText = filtered.length;
             if(lowScoreEl) lowScoreEl.innerText = itemMeans[0]?.mean.toFixed(2) || "0";
-            if(lowItemEl) lowItemEl.innerText = itemMeans[0] ? `#${itemMeans[0].id} ${itemMeans[0].desc}` : "-";
+            if(lowItemEl) {
+                lowItemEl.innerText = itemMeans[0] ? `#${itemMeans[0].id} ${itemMeans[0].desc}` : "-";
+                lowItemEl.title = itemMeans[0] ? `#${itemMeans[0].id} ${itemMeans[0].desc}` : "-";
+            }
             
             let stat = "Sederhana";
             if (mean >= 4.5) stat = "Sangat Cemerlang";
@@ -840,12 +861,12 @@
                 if(Number(m) < 4.0) { bCol = "bg-amber-50 text-amber-700"; bTxt = "Baik"; }
                 if(Number(m) < 3.0) { bCol = "bg-rose-50 text-rose-700"; bTxt = "Kritikal"; }
                 return `<tr class="hover:bg-slate-50 border-b border-slate-100">
-                    <td class="py-2.5 px-3 font-bold text-slate-500">#${item.id}</td>
-                    <td class="py-2.5 px-3 font-semibold text-spark-700">${item.cat}</td>
-                    <td class="py-2.5 px-3">${item.desc}</td>
+                    <td class="py-2.5 px-3 font-bold text-slate-500 whitespace-nowrap">#${item.id}</td>
+                    <td class="py-2.5 px-3 font-semibold text-spark-700 whitespace-nowrap">${item.cat}</td>
+                    <td class="py-2.5 px-3 min-w-[200px]">${item.desc}</td>
                     <td class="py-2.5 px-3 text-center font-black">${m}</td>
                     <td class="py-2.5 px-3 text-center font-bold">${p}%</td>
-                    <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md border ${bCol}">${bTxt}</span></td>
+                    <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md border ${bCol} whitespace-nowrap">${bTxt}</span></td>
                 </tr>`;
             }).join('');
         }
@@ -866,7 +887,7 @@
             if(radarChartInstance) radarChartInstance.destroy();
             radarChartInstance = new Chart(ctx, {
                 type: 'radar',
-                data: { labels: ["Urus Setia", "Lokasi", "Personal", "Bahan"], datasets: [{ label: 'Purata Skor', data, backgroundColor: 'rgba(14,165,233,0.2)', borderColor: '#0284c7', borderWidth: 2 }] },
+                data: { labels: ["Urus Setia", "Lokasi", "Personal", "Bahan"], datasets: [{ label: 'Purata Skor', data, backgroundColor: 'rgba(14,165,233,0.2)', borderColor: '#0284c7', borderWidth: 2, pointBackgroundColor: '#0284c7' }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5 } } }
             });
         }
@@ -904,11 +925,11 @@
                 Object.values(e.scores).forEach(v => { if(v && v!=='TB') { s+=Number(v); c++; }});
                 const mean = c>0 ? (s/c).toFixed(2) : "0.00";
                 return `<tr class="hover:bg-slate-50 border-b border-slate-100">
-                    <td class="py-2.5 px-3 text-slate-500 font-mono">${e.date}</td>
+                    <td class="py-2.5 px-3 text-slate-500 font-mono whitespace-nowrap">${e.date}</td>
                     <td class="py-2.5 px-3 font-semibold text-slate-800">${e.sector}</td>
-                    <td class="py-2.5 px-3 truncate max-w-[150px]">${e.programTitle}</td>
+                    <td class="py-2.5 px-3 min-w-[150px]">${e.programTitle}</td>
                     <td class="py-2.5 px-3 text-center font-bold text-spark-700">${mean}</td>
-                    <td class="py-2.5 px-3 text-slate-500 italic truncate max-w-[200px]">${e.comments || '-'}</td>
+                    <td class="py-2.5 px-3 text-slate-500 italic min-w-[200px]">${e.comments || '-'}</td>
                     <td class="py-2.5 px-3 text-center">
                         <button onclick="deleteEvaluation('${e.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button>
                     </td>
@@ -929,18 +950,18 @@
                 const evals = window.dbEvaluations.filter(e => e.sector === sec);
                 return `<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
-                        <h4 class="font-bold text-slate-900 text-xs truncate mr-2">${sec}</h4>
-                        <span class="bg-spark-50 text-spark-700 font-black text-[10px] px-2 py-0.5 rounded border border-spark-200">${evals.length} Maklumbalas</span>
+                        <h4 class="font-bold text-slate-900 text-xs truncate mr-2" title="${sec}">${sec}</h4>
+                        <span class="bg-spark-50 text-spark-700 font-black text-[10px] px-2 py-0.5 rounded border border-spark-200 shrink-0">${evals.length} Maklumbalas</span>
                     </div>
-                    <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                         ${progs.map(p => `
-                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-xs flex flex-col gap-1.5">
-                                <div class="flex justify-between items-start">
-                                    <div class="truncate pr-2">
+                            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs flex flex-col gap-2">
+                                <div class="flex justify-between items-start gap-2">
+                                    <div class="truncate">
                                         <p class="font-bold text-slate-800 text-[11px] truncate" title="${p.title}">${p.title}</p>
                                         <p class="text-[9px] text-slate-400">${p.date}</p>
                                     </div>
-                                    <button onclick="deleteProgram('${p.id}')" class="text-rose-500 hover:text-rose-700 px-1" title="Padam Program"><i class="fa-solid fa-trash-can"></i></button>
+                                    <button onclick="deleteProgram('${p.id}')" class="text-rose-500 hover:text-rose-700 p-1 shrink-0" title="Padam Program"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                                 <button onclick="openShareModal('${p.id}')" class="w-full bg-spark-100 hover:bg-spark-200 text-spark-800 border border-spark-200 text-[10px] font-bold py-1.5 rounded transition">Dapatkan QR & Pautan Form</button>
                             </div>
@@ -970,6 +991,7 @@
             };
 
             if (isFirebaseReady) {
+                // Save to public data space
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', newEval.id), newEval);
             } else {
                 window.dbEvaluations.unshift(newEval);
@@ -980,6 +1002,7 @@
             document.getElementById('form-comments').value = "";
             window.showToast("Borang PK06-1 dihantar berjaya!");
             window.switchTab('tab-analytics');
+            window.scrollTo(0, 0);
         };
 
         window.handleCreateProgramSubmit = async (e) => {
@@ -1029,9 +1052,11 @@
         window.clearAllData = async () => {
             if(!confirm("Kosongkan SEMUA data penilaian borang? Tindakan ini tidak boleh diundur.")) return;
             if (isFirebaseReady) {
-                const batch = writeBatch(db);
-                window.dbEvaluations.forEach(e => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id)));
-                await batch.commit();
+                try {
+                    const batch = writeBatch(db);
+                    window.dbEvaluations.forEach(e => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id)));
+                    await batch.commit();
+                } catch(e) { console.error("Error clearing data batch:", e); }
             } else {
                 window.dbEvaluations = [];
                 localStorage.setItem('spark_evaluations', JSON.stringify([]));
@@ -1040,33 +1065,18 @@
             window.showToast("Semua rekod maklumbalas dibersihkan.");
         };
 
-        window.clearAllPrograms = async () => {
-            if(!confirm("AMARAN: Ini akan memadam SEMUA rekod program dalam sistem. Teruskan?")) return;
-            if (isFirebaseReady) {
-                const batch = writeBatch(db);
-                window.dbPrograms.forEach(p => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'programs', p.id)));
-                await batch.commit();
-            } else {
-                window.dbPrograms = [];
-                localStorage.setItem('spark_programs', JSON.stringify([]));
-                window.populateMasterFilters(); window.populateFormProgramDropdown();
-                window.renderSectorMatrix(); window.applyGlobalFilters();
-            }
-            window.showToast("Semua program dibersihkan.");
-        };
-
         window.resetToSampleData = async () => {
-            if(!confirm("Kosongkan DB semasa dan mulakan dari data 0 bersih?")) return;
+            if(!confirm("Kosongkan DB semasa dan mulakan dari data 0 bersih (termasuk semua Program & Responden)?")) return;
             
             if (isFirebaseReady) {
-                // If on Firebase, wipe everything cleanly to start from 0
-                const batch = writeBatch(db);
-                window.dbPrograms.forEach(p => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'programs', p.id)));
-                window.dbEvaluations.forEach(e => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id)));
-                await batch.commit();
+                try {
+                    const batch = writeBatch(db);
+                    window.dbPrograms.forEach(p => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'programs', p.id)));
+                    window.dbEvaluations.forEach(e => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id)));
+                    await batch.commit();
+                } catch(e) { console.error("Error resetting data:", e); }
                 window.showToast("Pangkalan Data Firebase dikosongkan sepenuhnya!");
             } else {
-                // Local storage reset
                 localStorage.removeItem('spark_programs');
                 localStorage.removeItem('spark_evaluations');
                 window.dbPrograms = [];
@@ -1102,10 +1112,12 @@
                 });
             }
 
-            if (isFirebaseReady && userId) {
-                const batch = writeBatch(db);
-                batchToAdd.forEach(e => batch.set(doc(db, 'artifacts', appId, 'users', userId, 'evaluations', e.id), e));
-                await batch.commit();
+            if (isFirebaseReady) {
+                try {
+                    const batch = writeBatch(db);
+                    batchToAdd.forEach(e => batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id), e));
+                    await batch.commit();
+                } catch(err) { console.error("Error adding mock batch", err); }
             } else {
                 window.dbEvaluations = [...batchToAdd, ...window.dbEvaluations];
                 localStorage.setItem('spark_evaluations', JSON.stringify(window.dbEvaluations));
@@ -1117,7 +1129,6 @@
         window.generateAIAnalysis = async () => {
             const btn = document.getElementById('btn-generate-ai');
             const output = document.getElementById('ai-output-container');
-            const apiKey = ""; // Automatically provided by the platform
             
             // Generate for currently filtered visible evaluations
             const y = document.getElementById('filter-year').value;
@@ -1140,7 +1151,7 @@
             }
 
             btn.disabled = true; btn.classList.add('opacity-50');
-            output.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-spinner fa-spin text-3xl text-spark-600 mb-4"></i><p class="font-bold text-slate-700">Model Gemini AI sedang merangka analisis...</p></div>`;
+            output.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-spinner fa-spin text-3xl text-spark-600 mb-4"></i><p class="font-bold text-slate-700">Model Gemini AI sedang merangka analisis mendalam...</p></div>`;
 
             let itemSummaryList = PK06_ITEMS.map(i => {
                 let sum=0, count=0;
@@ -1149,19 +1160,43 @@
             }).join('\n');
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                // Tiada pengesahan API Key di pihak frontend, gunakan rentetan kosong
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const systemPrompt = "Anda adalah Pakar Analisis Kualiti dan Penilai Program Sektor Pendidikan yang bertauliah dari Malaysia. Jawab dalam Bahasa Melayu yang profesional.";
+                const userQuery = `Berdasarkan data berikut (Jumlah Responden: ${filteredData.length}), sila hasilkan laporan analisis berstruktur profesional. Nyatakan:\n1. Rumusan Keseluruhan (Satu Perenggan)\n2. 3 Kekuatan Utama\n3. 3 Kelemahan Kritikal (Kawasan perlu dibaiki)\n4. Cadangan Pelan Tindakan Penambahbaikan Berimpak Tinggi.\n\nData Skor Likert (1-5):\n${itemSummaryList}`;
+
+                const res = await fetch(apiUrl, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Berdasarkan data berikut (Jumlah Responden: ${filteredData.length}), sila hasilkan analisis berstruktur profesional. Nyatakan:\n1. Rumusan Keseluruhan\n2. 3 Kekuatan Utama\n3. 3 Kelemahan Kritikal\n4. Cadangan Tindakan Penambahbaikan.\n\nData Skor:\n${itemSummaryList}` }] }],
-                        systemInstruction: { parts: [{ text: "Anda adalah Pakar Analisis Kualiti dan Penilai Program Sektor Pendidikan yang bertauliah." }] }
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
                     })
                 });
+                
                 const result = await res.json();
                 if(result.error) throw new Error(result.error.message);
-                const text = result.candidates[0].content.parts[0].text;
-                output.innerHTML = `<div class="bg-white p-5 rounded-xl text-xs space-y-4 leading-relaxed border border-slate-200 font-medium text-slate-800">${text.replace(/\n/g, '<br>')}</div>`;
+                
+                let text = result.candidates[0].content.parts[0].text;
+                // Format basic markdown bolding to HTML
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>');
+                text = text.replace(/\n/g, '<br>');
+
+                output.innerHTML = `
+                    <div class="prose prose-slate max-w-none space-y-4">
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200 flex flex-wrap items-center justify-between text-xs font-bold text-emerald-900 gap-2">
+                            <span><i class="fa-solid fa-check-circle text-emerald-600 mr-1"></i> Analisis Berjaya Dijana (Gemini AI)</span>
+                            <span class="bg-emerald-100 px-2 py-0.5 rounded text-[10px]">Analisis ${filteredData.length} Responden</span>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl text-xs space-y-3 leading-relaxed border border-slate-200 font-medium text-slate-700">
+                            ${text}
+                        </div>
+                    </div>
+                `;
             } catch(e) {
-                output.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200">Ralat Semasa Menjana AI: ${e.message}</div>`;
+                output.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200 space-y-2"><strong>Ralat Semasa Menjana AI:</strong> ${e.message}<br><p class="text-[11px] text-rose-600 bg-white p-2 border border-rose-100 rounded">Ralat berlaku semasa menyambung ke pelayan Google AI. Ini mungkin disebabkan oleh had akses terus tanpa pelayan proksi.</p></div>`;
             } finally {
                 btn.disabled = false; btn.classList.remove('opacity-50');
             }
@@ -1173,17 +1208,17 @@
             const cats = [...new Set(PK06_ITEMS.map(i => i.cat))];
             container.innerHTML = cats.map(cat => {
                 const items = PK06_ITEMS.filter(i => i.cat === cat);
-                return `<div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-800 text-xs mb-3 uppercase tracking-wider text-spark-700">${cat}</h4>
+                return `<div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-800 text-xs mb-3 uppercase tracking-wider text-spark-700 flex items-center gap-1.5"><i class="fa-solid fa-folder text-spark-600"></i> ${cat}</h4>
                     <div class="space-y-2 divide-y divide-slate-200">
                         ${items.map(item => `
                             <div class="pt-2 flex flex-col sm:flex-row justify-between gap-3">
-                                <div class="text-xs font-medium w-full sm:w-1/2"><span class="font-bold text-slate-400">#${item.id}</span> ${item.desc}</div>
-                                <div class="flex gap-2 text-[10px]">
+                                <div class="text-xs font-medium w-full sm:w-1/2 leading-relaxed"><span class="font-bold text-slate-400">#${item.id}</span> ${item.desc}</div>
+                                <div class="flex items-center gap-2 sm:gap-3 text-[10px] self-end sm:self-auto">
                                     ${['TB','1','2','3','4','5'].map(val => `
-                                        <label class="flex flex-col items-center cursor-pointer p-1">
-                                            <span class="font-bold text-slate-400">${val}</span>
-                                            <input type="radio" name="item-${item.id}" value="${val}" ${val==='4'?'checked':''} class="accent-spark-600">
+                                        <label class="flex flex-col items-center cursor-pointer p-1 transition hover:bg-slate-200 rounded">
+                                            <span class="font-bold text-slate-400 mb-1">${val}</span>
+                                            <input type="radio" name="item-${item.id}" value="${val}" ${val==='4'?'checked':''} class="accent-spark-600 w-3 h-3 sm:w-4 sm:h-4">
                                         </label>
                                     `).join('')}
                                 </div>
@@ -1199,6 +1234,7 @@
             const dateInput = document.getElementById('form-date');
             if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
+            // Setup specific program mode for participants scanning QR
             const urlParams = new URLSearchParams(window.location.search);
             const progId = urlParams.get('prog');
             if (progId) {
@@ -1207,38 +1243,51 @@
                     const sel = document.getElementById('form-program-id');
                     if (sel) { sel.value = progId; sel.disabled = true; window.onFormProgramChange(); }
                     document.getElementById('form-locked-alert').classList.remove('hidden');
-                }, 1000);
+                }, 1000); // Small delay to let data load
             }
 
             try {
+                // Initialize Firebase
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                
+                // Sign in anonymously so users can submit to public collections
                 await signInAnonymously(auth);
                 
-                document.getElementById('firebase-status').innerText = "Firebase Live Mode";
+                document.getElementById('firebase-status').innerText = "Live Cloud Sync";
                 document.getElementById('firebase-status').className = "ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700";
                 isFirebaseReady = true;
 
+                // Listen to Programs (Public Data)
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'programs'), (snap) => {
                     window.dbPrograms = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    window.populateMasterFilters(); window.populateFormProgramDropdown(); window.renderSectorMatrix();
+                    window.populateMasterFilters(); 
+                    window.populateFormProgramDropdown(); 
+                    window.renderSectorMatrix();
+                }, (error) => {
+                    console.error("Firestore Programs Sync Error", error);
                 });
                 
+                // Listen to Evaluations (Public Data)
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'evaluations'), (snap) => {
                     window.dbEvaluations = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     window.applyGlobalFilters();
+                }, (error) => {
+                    console.error("Firestore Evaluations Sync Error", error);
                 });
 
             } catch (e) {
-                console.warn("Firebase Init Failed, using Local Storage", e);
+                console.warn("Firebase Init Failed, falling back to Local Storage", e);
                 document.getElementById('firebase-status').innerText = "Local DB Mode";
                 document.getElementById('firebase-status').className = "ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700";
                 
                 window.dbPrograms = JSON.parse(localStorage.getItem('spark_programs') || '[]');
                 window.dbEvaluations = JSON.parse(localStorage.getItem('spark_evaluations') || '[]');
-                window.populateMasterFilters(); window.populateFormProgramDropdown();
-                window.renderSectorMatrix(); window.applyGlobalFilters();
+                window.populateMasterFilters(); 
+                window.populateFormProgramDropdown();
+                window.renderSectorMatrix(); 
+                window.applyGlobalFilters();
             }
         }
 
