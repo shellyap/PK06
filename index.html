@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard SPARK PPD - Sistem Pemantauan Multi-Sektor & Multi-Program</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        spark: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-btn { transition: all 0.2s ease; border-left: 4px solid transparent; }
+        .tab-btn:hover:not(.active) { background-color: #f1f5f9; color: #0f172a; }
+        .tab-btn.active { background-color: #f0f7ff; color: #0284c7; border-left-color: #0284c7; font-weight: 800; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #e2e8f0; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background-color: white; color: black; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <header class="bg-gradient-to-r from-slate-900 via-spark-900 to-indigo-950 text-white shadow-xl no-print border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-spark-600/30 rounded-xl border border-spark-400/30 backdrop-blur-md">
+                    <i class="fa-solid fa-chart-line text-2xl text-spark-400"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl sm:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-spark-200">
+                            SPARK PPD
+                        </h1>
+                        <span class="text-[10px] bg-spark-500/20 text-spark-300 border border-spark-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Multi-Sektor</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-medium">Sistem Pemantauan Multi-Sektor & Multi-Program PK06-1</p>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center gap-2">
+                <button onclick="openNewProgramModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg transition duration-150 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>+ Program Baru</span>
+                </button>
+                <button onclick="resetToSampleData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-700 transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Muat Ulang Data
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col md:flex-row w-full mx-auto">
+
+        <!-- Left Sidebar Navigation -->
+        <aside class="w-full md:w-64 lg:w-72 bg-white border-r border-slate-200 no-print shrink-0 p-4 space-y-4">
+            <div class="px-2 pt-1 pb-2 border-b border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Navigasi Utama</span>
+                <span class="text-[10px] bg-spark-100 text-spark-800 font-bold px-2 py-0.5 rounded">SPARK v2.5</span>
+            </div>
+
+            <nav class="space-y-1.5 font-medium text-xs sm:text-sm">
+                <button onclick="switchTab('tab-analytics')" id="btn-tab-analytics" class="tab-btn active flex items-center gap-3 w-full px-3 py-3 rounded-xl text-slate-700">
+                    <i class="fa-solid fa-chart-pie text-spark-600 text-base w-5 text-center"></i>
+                    <span class="truncate">Papan Analisis Likert</span>
+                </button>
+
+                <button onclick="switchTab('tab-borang')" id="btn-tab-borang" class="tab-btn flex items-center gap-3 w-full px-3 py-3 rounded-xl text-slate-700">
+                    <i class="fa-solid fa-pen-to-square text-spark-600 text-base w-5 text-center"></i>
+                    <span class="truncate">Borang Input Maklumbalas</span>
+                </button>
+
+                <button onclick="switchTab('tab-sektor')" id="btn-tab-sektor" class="tab-btn flex items-center gap-3 w-full px-3 py-3 rounded-xl text-slate-700">
+                    <i class="fa-solid fa-network-wired text-spark-600 text-base w-5 text-center"></i>
+                    <span class="truncate">Matriks Sektor & Program</span>
+                </button>
+
+                <button onclick="switchTab('tab-ai')" id="btn-tab-ai" class="tab-btn flex items-center gap-3 w-full px-3 py-3 rounded-xl text-slate-700">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-base w-5 text-center"></i>
+                    <span class="truncate">Analisis & Cadangan AI</span>
+                </button>
+
+                <button onclick="switchTab('tab-data')" id="btn-tab-data" class="tab-btn flex items-center justify-between gap-2 w-full px-3 py-3 rounded-xl text-slate-700">
+                    <div class="flex items-center gap-3 truncate">
+                        <i class="fa-solid fa-database text-spark-600 text-base w-5 text-center"></i>
+                        <span class="truncate">Senarai Responden</span>
+                    </div>
+                    <span class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-slate-200" id="res-count-badge">0</span>
+                </button>
+            </nav>
+
+            <!-- Quick System Info -->
+            <div class="pt-4 border-t border-slate-100 hidden md:block">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                        <i class="fa-solid fa-circle-info text-spark-600"></i>
+                        <span>Petunjuk URL Terkunci</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                        Imbas QR khas bagi setiap program untuk mengunci borang peserta secara automatik mengikut sektor anjuran.
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Main Dashboard Content Area -->
+        <div class="flex-1 min-w-0 flex flex-col">
+
+            <div class="bg-slate-900 text-white border-b border-slate-800 shadow-md no-print py-3">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-spark-400 text-xs"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Penapis Master:</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 max-w-4xl">
+                            <!-- Filter Year -->
+                            <div>
+                                <select id="filter-year" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                    <option value="ALL">Semua Tahun</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+                            <!-- Filter Month -->
+                            <div>
+                                <select id="filter-month" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                    <option value="ALL" selected>Semua Bulan</option>
+                                    <option value="1">Januari</option>
+                                    <option value="2">Februari</option>
+                                    <option value="3">Mac</option>
+                                    <option value="4">April</option>
+                                    <option value="5">Mei</option>
+                                    <option value="6">Jun</option>
+                                    <option value="7">Julai</option>
+                                    <option value="8">Ogos</option>
+                                    <option value="9">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Disember</option>
+                                </select>
+                            </div>
+                            <!-- Filter Sector -->
+                            <div>
+                                <select id="filter-sector" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                    <option value="ALL" selected>Semua Sektor / Unit PPD</option>
+                                    <optgroup label="Sektor Utama">
+                                        <option value="Sektor Pembelajaran">Sektor Pembelajaran</option>
+                                        <option value="Sektor Pengurusan Sekolah">Sektor Pengurusan Sekolah</option>
+                                        <option value="Sektor Pembangunan Murid">Sektor Pembangunan Murid</option>
+                                        <option value="Sektor Perancangan">Sektor Perancangan</option>
+                                        <option value="Sektor Pentaksiran & Peperiksaan">Sektor Pentaksiran & Peperiksaan</option>
+                                        <option value="Sektor Pengurusan">Sektor Pengurusan</option>
+                                    </optgroup>
+                                    <optgroup label="Unit Sokongan">
+                                        <option value="Unit Psikologi & Kaunseling">Unit Psikologi & Kaunseling</option>
+                                        <option value="Unit Pendidikan Khas">Unit Pendidikan Khas</option>
+                                        <option value="Unit Pendidikan Islam">Unit Pendidikan Islam</option>
+                                        <option value="Unit Sumber & Teknologi Pendidikan">Unit Sumber & Teknologi Pendidikan (USTP)</option>
+                                        <option value="Unit Kewangan">Unit Kewangan</option>
+                                        <option value="Unit Pentadbiran & Am">Unit Pentadbiran & Am</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <!-- Filter Program -->
+                            <div>
+                                <select id="filter-program" onchange="applyGlobalFilters()" class="w-full bg-slate-800 text-white text-xs rounded-lg border border-slate-700 px-2.5 py-1.5 focus:ring-1 focus:ring-spark-500">
+                                    <option value="ALL" selected>Semua Program</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected Context Banner -->
+            <div class="bg-white border-b border-slate-200 shadow-sm py-2.5 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-500">Paparan Aktif:</span>
+                        <span id="active-filter-label" class="bg-spark-50 text-spark-800 border border-spark-200 font-bold px-2.5 py-1 rounded-md">
+                            Semua Sektor & Program
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-500 font-medium">
+                        <span>Jumlah Responden Tersaring: <strong id="filter-res-count" class="text-slate-900 font-black">0</strong></span>
+                        <span id="firebase-status" class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interactive Tabs Content -->
+            <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+                <section id="tab-analytics" class="tab-content space-y-6">
+                    
+                    <!-- Top Metric Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Skor Min Keseluruhan</p>
+                                <h3 class="text-3xl font-black text-slate-900 mt-1" id="kpi-overall-mean">0.00</h3>
+                                <p class="text-[11px] font-semibold text-emerald-600 mt-1" id="kpi-status-label">Tahap: -</p>
+                            </div>
+                            <div class="p-3 bg-spark-50 rounded-2xl border border-spark-100 text-spark-600">
+                                <i class="fa-solid fa-star text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Indeks Kepuasan (%)</p>
+                                <h3 class="text-3xl font-black text-slate-900 mt-1" id="kpi-satisfaction">0.0%</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Skor 4 & 5 (Setuju/Sangat Setuju)</p>
+                            </div>
+                            <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-600">
+                                <i class="fa-solid fa-face-smile text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Jumlah Maklumbalas</p>
+                                <h3 class="text-3xl font-black text-slate-900 mt-1" id="kpi-res-total">0</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Daripada pelbagai program</p>
+                            </div>
+                            <div class="p-3 bg-indigo-50 rounded-2xl border border-indigo-100 text-indigo-600">
+                                <i class="fa-solid fa-users text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Item Kritikal</p>
+                                <h3 class="text-3xl font-black text-rose-600 mt-1" id="kpi-lowest-score">0.00</h3>
+                                <p class="text-[11px] text-slate-500 mt-1 truncate max-w-[140px]" id="kpi-lowest-item">Perlu Penambahbaikan</p>
+                            </div>
+                            <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600">
+                                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Radar Chart -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base">Profil Prestasi 4 Kategori Utam</h3>
+                                    <p class="text-xs text-slate-500">Carta Radar purata skor mengikut kategori PK06-1</p>
+                                </div>
+                                <span class="bg-spark-50 text-spark-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-spark-200">Kategori PK06-1</span>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="chart-radar"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base">Min Skor Mengikut Kategori</h3>
+                                    <p class="text-xs text-slate-500">Perbandingan skor min berasaskan 5 skala Likert</p>
+                                </div>
+                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-emerald-200">Perbandingan Min</span>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="chart-bar"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown by 18 Items Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-3 p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">Analisis Terperinci 18 Item Penilaian PK06-1</h3>
+                                <p class="text-xs text-slate-500">Auto-kiraan min, sisihan piawai, dan peratusan setuju mengikut item</p>
+                            </div>
+                            <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 transition flex items-center gap-1.5 w-fit">
+                                <i class="fa-solid fa-print"></i> Cetak Laporan
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-3 px-3">Bil</th>
+                                        <th class="py-3 px-3">Kategori</th>
+                                        <th class="py-3 px-3">Deskripsi Item Penilaian</th>
+                                        <th class="py-3 px-3 text-center">Min (1-5)</th>
+                                        <th class="py-3 px-3 text-center">% Setuju (4-5)</th>
+                                        <th class="py-3 px-3 text-center">Tahap</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analytics-items-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
+                                    <!-- Dynamic rows inserted by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+                <section id="tab-borang" class="tab-content hidden space-y-6">
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 max-w-4xl mx-auto">
+                        
+                        <!-- Form Header -->
+                        <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-spark-600 text-white font-black text-[10px] px-2 py-0.5 rounded">BORANG PK06-1</span>
+                                    <h2 class="text-lg font-bold text-slate-900">Borang Penilaian Program UPBMG / PPD</h2>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">Sila isi maklum balas di bawah berdasarkan skala Likert 1 hingga 5.</p>
+                            </div>
+                            
+                            <!-- Participant Link Mode Alert -->
+                            <div id="form-locked-alert" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 rounded-xl flex items-center gap-2">
+                                <i class="fa-solid fa-lock text-amber-600"></i>
+                                <span>Borang dikunci khusus untuk program terpilih.</span>
+                            </div>
+                        </div>
+
+                        <form id="evaluation-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                            
+                            <!-- Program Selector Input -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Program / Anjuran *</label>
+                                    <select id="form-program-id" required onchange="onFormProgramChange()" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-spark-500">
+                                        <!-- Dynamic options -->
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Sektor Anjuran PPD</label>
+                                    <input type="text" id="form-sector-display" readonly class="w-full text-xs bg-slate-100 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-600" value="-">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Tarikh Penilaian</label>
+                                    <input type="date" id="form-date" required class="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-800">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Responden / Kod Perkhidmatan (Opsional)</label>
+                                    <input type="text" id="form-respondent-name" placeholder="Contoh: Peserta Zon Ranau 01" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5">
+                                </div>
+                            </div>
+
+                            <!-- Scale Legend -->
+                            <div class="bg-slate-900 text-slate-200 p-3.5 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-bold text-spark-400 uppercase tracking-wider">Petunjuk Skala Likert:</span>
+                                <div class="flex flex-wrap items-center gap-3 font-semibold text-[11px]">
+                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">TB: Tidak Berkenaan</span>
+                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">1: Sangat Tidak Setuju</span>
+                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">2: Tidak Setuju</span>
+                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">3: Kurang Setuju</span>
+                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">4: Setuju</span>
+                                    <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700">5: Sangat Setuju</span>
+                                </div>
+                            </div>
+
+                            <!-- 18 Items Container -->
+                            <div id="form-items-container" class="space-y-6">
+                                <!-- Dynamic Render of 18 Likert Items grouped by category -->
+                            </div>
+
+                            <!-- Qualitative Feedback Section -->
+                            <div class="space-y-2 border-t border-slate-200 pt-4">
+                                <label class="block text-xs font-bold text-slate-800">Cadangan / Ulasan Penambahbaikan (Opsional)</label>
+                                <textarea id="form-comments" rows="3" placeholder="Sila nyatakan sebarang cadangan untuk meningkatkan kualiti program pada masa akan datang..." class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-spark-500"></textarea>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
+                                <button type="button" onclick="fillRandomForm()" class="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-dice text-spark-600"></i> Simulasi Isian Rawak
+                                </button>
+                                
+                                <button type="submit" class="w-full sm:w-auto bg-spark-600 hover:bg-spark-700 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Hantar Maklumbalas PK06-1</span>
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </section>
+
+                <section id="tab-sektor" class="tab-content hidden space-y-6">
+                    
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">Matriks Program Mengikut Sektor / Unit</h3>
+                                <p class="text-xs text-slate-500">Uruskan program, dapatkan Pautan / Kod QR Peserta, dan kemaskini senarai program</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="clearAllPrograms()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-trash-can"></i> Padam Semua Program
+                                </button>
+                                <button onclick="openNewProgramModal()" class="bg-spark-600 hover:bg-spark-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plus-circle"></i> Tambah Program Baru
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sector Overview Cards -->
+                        <div id="sector-matrix-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Dynamic sector cards -->
+                        </div>
+                    </div>
+
+                </section>
+
+                <section id="tab-ai" class="tab-content hidden space-y-6">
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-lg">Penjana Laporan & Analisis Penambahbaikan AI</h3>
+                                    <p class="text-xs text-slate-500">Menggunakan model Gemini Flash untuk menjana analisis punca & cadangan tindakan berimpak tinggi</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <button onclick="generateAIAnalysis()" id="btn-generate-ai" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>Jana Analisis AI Sekarang</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- AI Output Container -->
+                        <div id="ai-output-container" class="min-h-[250px] bg-slate-50 p-6 rounded-2xl border border-slate-200 text-xs leading-relaxed text-slate-700">
+                            <div class="text-center py-12 space-y-3">
+                                <i class="fa-solid fa-robot text-4xl text-slate-300"></i>
+                                <h4 class="font-bold text-slate-600 text-sm">Laporan AI Belum Dijana</h4>
+                                <p class="text-slate-400 max-w-md mx-auto">Tentukan penapis sektor atau program di bahagian atas, kemudian tekan butang "Jana Analisis AI Sekarang".</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <section id="tab-data" class="tab-content hidden space-y-6">
+                    
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">Pangkalan Data Responden & Rekod Penilaian</h3>
+                                <p class="text-xs text-slate-500">Senarai penuh jawapan individu mengikut penapis master aktif</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="addMockBatch()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <i class="fa-solid fa-plus"></i> +5 Simulasi Responden
+                                </button>
+                                <button onclick="clearAllData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <i class="fa-solid fa-trash"></i> Kosongkan
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-3 px-3">Tarikh</th>
+                                        <th class="py-3 px-3">Sektor PPD</th>
+                                        <th class="py-3 px-3">Nama Program</th>
+                                        <th class="py-3 px-3 text-center">Purata Skor</th>
+                                        <th class="py-3 px-3">Ulasans / Cadangan</th>
+                                        <th class="py-3 px-3 text-center">Tindakan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="respondents-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+            </main>
+
+            <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-auto no-print">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p>© 2026 Dashboard SPARK PPD - Pejabat Pendidikan Daerah. Hak Cipta Terpelihara PK06-1.</p>
+                    <p class="text-slate-500">Standard Kualiti Penilaian Program UPBMG & Multi-Sektor</p>
+                </div>
+            </footer>
+
+        </div> <!-- End Right Content Area -->
+
+    </div> <!-- End Main Flex Container -->
+
+
+    <!-- New Program Modal -->
+    <div id="new-program-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">Cipta Program Baru PPD</h3>
+                <button onclick="closeNewProgramModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="handleCreateProgramSubmit(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Sektor Anjuran PPD *</label>
+                    <select id="new-prog-sector" required class="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-semibold text-slate-800">
+                        <optgroup label="Sektor Utama">
+                            <option value="Sektor Pembelajaran">Sektor Pembelajaran</option>
+                            <option value="Sektor Pengurusan Sekolah">Sektor Pengurusan Sekolah</option>
+                            <option value="Sektor Pembangunan Murid">Sektor Pembangunan Murid</option>
+                            <option value="Sektor Perancangan">Sektor Perancangan</option>
+                            <option value="Sektor Pentaksiran & Peperiksaan">Sektor Pentaksiran & Peperiksaan</option>
+                            <option value="Sektor Pengurusan">Sektor Pengurusan</option>
+                        </optgroup>
+                        <optgroup label="Unit Sokongan PPD">
+                            <option value="Unit Psikologi & Kaunseling">Unit Psikologi & Kaunseling</option>
+                            <option value="Unit Pendidikan Khas">Unit Pendidikan Khas</option>
+                            <option value="Unit Pendidikan Islam">Unit Pendidikan Islam</option>
+                            <option value="Unit Sumber & Teknologi Pendidikan">Unit Sumber & Teknologi Pendidikan (USTP)</option>
+                            <option value="Unit Kewangan">Unit Kewangan</option>
+                            <option value="Unit Pentadbiran & Am">Unit Pentadbiran & Am</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Program / Kursus *</label>
+                    <input type="text" id="new-prog-title" required placeholder="Contoh: Kursus UPBMG Zon Ranau" class="w-full border border-slate-300 rounded-xl p-2.5 font-semibold text-slate-800">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Tarikh Program *</label>
+                    <input type="date" id="new-prog-date" required class="w-full border border-slate-300 rounded-xl p-2.5 font-semibold text-slate-800">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Lokasi / Tempat</label>
+                    <input type="text" id="new-prog-location" placeholder="Contoh: Bilik Mesyuarat Aras 1" class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeNewProgramModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-spark-600 hover:bg-spark-700 text-white rounded-xl font-bold shadow-md">Simpan Program</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Share Modal -->
+    <div id="share-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 class="font-bold text-slate-900 text-sm">Pautan & Kod QR Peserta</h3>
+                <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="space-y-2">
+                <p id="share-prog-title" class="font-black text-xs text-spark-800">Nama Program</p>
+                <p id="share-prog-sector" class="text-[11px] font-semibold text-slate-500">Sektor</p>
+            </div>
+
+            <!-- QR Code Box -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-2">
+                <img id="share-qr-img" src="" alt="Kod QR Program" class="w-44 h-44 rounded-lg shadow-md bg-white p-2">
+                <p class="text-[10px] text-slate-400">Imbas guna kamera telefon untuk mengisi borang PK06-1</p>
+            </div>
+
+            <div class="space-y-2">
+                <input type="text" id="share-link-input" readonly class="w-full text-[11px] bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono text-center select-all">
+                <button onclick="copyShareLink()" class="w-full bg-spark-600 hover:bg-spark-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-copy"></i> Salin Pautan Form Peserta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Message -->
+    <div id="toast-message" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border border-slate-800 transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-text">Mesej Notifikasi</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const PK06_ITEMS = [
+            { id: 1, cat: "Urus Setia Dan Pengurusan", desc: "Pendaftaran peserta disediakan" },
+            { id: 2, cat: "Urus Setia Dan Pengurusan", desc: "Maklumat yang disediakan mudah" },
+            { id: 3, cat: "Urus Setia Dan Pengurusan", desc: "Pengurusan teratur" },
+            { id: 4, cat: "Urus Setia Dan Pengurusan", desc: "Urus setia sentiasa membantu saya" },
+            { id: 5, cat: "Lokasi", desc: "Tempat Sesuai" },
+            { id: 6, cat: "Lokasi", desc: "Dewan sesuai" },
+            { id: 7, cat: "Lokasi", desc: "Peralatan dan alat tulis disediakan" },
+            { id: 8, cat: "Lokasi", desc: "Dewan makan bersih dan selesa" },
+            { id: 9, cat: "Lokasi", desc: "Kualiti makanan baik" },
+            { id: 10, cat: "Lokasi", desc: "Makanan yang disediakan mencukupi" },
+            { id: 11, cat: "Personal", desc: "Program ini mampu meningkatkan prestasi kerja saya" },
+            { id: 12, cat: "Personal", desc: "Program ini mampu memberi keyakinan kepada saya dalam memberi perkhidmatan" },
+            { id: 13, cat: "Personal", desc: "Tempoh masa program mencukupi" },
+            { id: 14, cat: "Personal", desc: "Saya bersedia untuk memberi kursus dalaman" },
+            { id: 15, cat: "Bahan", desc: "Berguna" },
+            { id: 16, cat: "Bahan", desc: "Membantu" },
+            { id: 17, cat: "Bahan", desc: "Mudah difahami" },
+            { id: 18, cat: "Bahan", desc: "Jelas" }
+        ];
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDe00Snra1uYPv5-JdCl6UW0CqymR3Fe_k",
+            authDomain: "read-6034d.firebaseapp.com",
+            databaseURL: "https://read-6034d-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "read-6034d",
+            storageBucket: "read-6034d.firebasestorage.app",
+            messagingSenderId: "282456310870",
+            appId: "1:282456310870:web:932f8b163d722cbdbda7f7",
+            measurementId: "G-Z78GFTVL74"
+        };
+
+        let app, db, auth;
+        let isFirebaseReady = false;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spark-ppd-app';
+
+        window.dbPrograms = [];
+        window.dbEvaluations = [];
+        let radarChartInstance = null;
+        let barChartInstance = null;
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            const targetSection = document.getElementById(tabId);
+            const targetBtn = document.getElementById(`btn-${tabId}`);
+            if (targetSection) targetSection.classList.remove('hidden');
+            if (targetBtn) targetBtn.classList.add('active');
+        };
+
+        window.openNewProgramModal = () => document.getElementById('new-program-modal').classList.remove('hidden');
+        window.closeNewProgramModal = () => document.getElementById('new-program-modal').classList.add('hidden');
+        
+        window.showToast = (msg) => {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        };
+
+        window.openShareModal = (progId) => {
+            const prog = window.dbPrograms.find(p => p.id === progId);
+            if (!prog) return;
+            document.getElementById('share-prog-title').innerText = prog.title;
+            document.getElementById('share-prog-sector').innerText = prog.sector;
+            const fullLink = `${window.location.origin}${window.location.pathname}?prog=${prog.id}`;
+            document.getElementById('share-link-input').value = fullLink;
+            document.getElementById('share-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullLink)}`;
+            document.getElementById('share-modal').classList.remove('hidden');
+        };
+        window.closeShareModal = () => document.getElementById('share-modal').classList.add('hidden');
+        window.copyShareLink = () => {
+            document.getElementById('share-link-input').select();
+            document.execCommand('copy');
+            window.showToast("Pautan berjaya disalin!");
+        };
+
+        window.populateMasterFilters = () => {
+            const select = document.getElementById('filter-program');
+            const sectorSelect = document.getElementById('filter-sector');
+            if (!select || !sectorSelect) return;
+            
+            let html = '<option value="ALL">Semua Program</option>';
+            window.dbPrograms.forEach(p => html += `<option value="${p.id}">${p.title}</option>`);
+            select.innerHTML = html;
+
+            // Dynamically populate sectors dropdown based on active programs to include units
+            const activeSectors = [...new Set(window.dbPrograms.map(p => p.sector))];
+            let sectorHtml = '<option value="ALL">Semua Sektor / Unit PPD</option>';
+            activeSectors.forEach(sec => sectorHtml += `<option value="${sec}">${sec}</option>`);
+            sectorSelect.innerHTML = sectorHtml;
+        };
+
+        window.populateFormProgramDropdown = () => {
+            const select = document.getElementById('form-program-id');
+            if (!select) return;
+            select.innerHTML = window.dbPrograms.map(p => `<option value="${p.id}">${p.title} (${p.sector})</option>`).join('');
+            window.onFormProgramChange();
+        };
+
+        window.onFormProgramChange = () => {
+            const select = document.getElementById('form-program-id');
+            const sectorInput = document.getElementById('form-sector-display');
+            if (select && sectorInput) {
+                const prog = window.dbPrograms.find(p => p.id === select.value);
+                if (prog) sectorInput.value = prog.sector;
+            }
+        };
+
+        window.applyGlobalFilters = () => {
+            const y = document.getElementById('filter-year').value;
+            const m = document.getElementById('filter-month').value;
+            const s = document.getElementById('filter-sector').value;
+            const p = document.getElementById('filter-program').value;
+
+            const filtered = window.dbEvaluations.filter(e => {
+                const d = new Date(e.date);
+                if (y !== 'ALL' && d.getFullYear().toString() !== y) return false;
+                if (m !== 'ALL' && (d.getMonth() + 1).toString() !== m) return false;
+                if (s !== 'ALL' && e.sector !== s) return false;
+                if (p !== 'ALL' && e.programId !== p) return false;
+                return true;
+            });
+
+            const resCountBadge = document.getElementById('res-count-badge');
+            const filterResCount = document.getElementById('filter-res-count');
+            const activeFilterLabel = document.getElementById('active-filter-label');
+
+            if (resCountBadge) resCountBadge.innerText = filtered.length;
+            if (filterResCount) filterResCount.innerText = filtered.length;
+            if (activeFilterLabel) activeFilterLabel.innerText = `${s === 'ALL' ? 'Semua Sektor' : s} (${y})`;
+
+            calculateAndRenderKPIs(filtered);
+            renderAnalyticsTable(filtered);
+            renderRadarChart(filtered);
+            renderBarChart(filtered);
+            renderRespondentTable(filtered);
+            window.renderSectorMatrix();
+        };
+
+        function calculateAndRenderKPIs(filtered) {
+            const meanEl = document.getElementById('kpi-overall-mean');
+            const satEl = document.getElementById('kpi-satisfaction');
+            const resEl = document.getElementById('kpi-res-total');
+            const lowScoreEl = document.getElementById('kpi-lowest-score');
+            const lowItemEl = document.getElementById('kpi-lowest-item');
+            const statEl = document.getElementById('kpi-status-label');
+
+            if (filtered.length === 0) {
+                if(meanEl) meanEl.innerText = "0.00";
+                if(satEl) satEl.innerText = "0.0%";
+                if(resEl) resEl.innerText = "0";
+                if(lowScoreEl) lowScoreEl.innerText = "0.00";
+                if(lowItemEl) lowItemEl.innerText = "Tiada Data";
+                if(statEl) statEl.innerText = "Tahap: -";
+                return;
+            }
+            let sum=0, validRatings=0, satCount=0;
+            const itemMeans = PK06_ITEMS.map(i => {
+                let s=0, c=0;
+                filtered.forEach(e => {
+                    const v = e.scores[i.id];
+                    if(v && v !== 'TB') {
+                        s += Number(v); c++;
+                        sum += Number(v); validRatings++;
+                        if(Number(v) >= 4) satCount++;
+                    }
+                });
+                return { id: i.id, desc: i.desc, mean: c > 0 ? (s/c) : 0 };
+            });
+            const mean = validRatings > 0 ? (sum / validRatings) : 0;
+            const sat = validRatings > 0 ? (satCount / validRatings * 100) : 0;
+            itemMeans.sort((a,b) => a.mean - b.mean);
+            
+            if(meanEl) meanEl.innerText = mean.toFixed(2);
+            if(satEl) satEl.innerText = sat.toFixed(1) + "%";
+            if(resEl) resEl.innerText = filtered.length;
+            if(lowScoreEl) lowScoreEl.innerText = itemMeans[0]?.mean.toFixed(2) || "0";
+            if(lowItemEl) lowItemEl.innerText = itemMeans[0] ? `#${itemMeans[0].id} ${itemMeans[0].desc}` : "-";
+            
+            let stat = "Sederhana";
+            if (mean >= 4.5) stat = "Sangat Cemerlang";
+            else if (mean >= 4.0) stat = "Baik / Memuaskan";
+            else if (mean < 3.0) stat = "Perlu Perhatian";
+            if(statEl) statEl.innerText = `Tahap: ${stat}`;
+        }
+
+        function renderAnalyticsTable(filtered) {
+            const tbody = document.getElementById('analytics-items-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = PK06_ITEMS.map(item => {
+                let s=0, c=0, sat=0;
+                filtered.forEach(e => {
+                    const v = e.scores[item.id];
+                    if(v && v!=='TB') { s+=Number(v); c++; if(Number(v)>=4) sat++; }
+                });
+                const m = c>0 ? (s/c).toFixed(2) : "0.00";
+                const p = c>0 ? ((sat/c)*100).toFixed(1) : "0.0";
+                let bCol = "bg-emerald-50 text-emerald-700", bTxt = "Cemerlang";
+                if(Number(m) < 4.0) { bCol = "bg-amber-50 text-amber-700"; bTxt = "Baik"; }
+                if(Number(m) < 3.0) { bCol = "bg-rose-50 text-rose-700"; bTxt = "Kritikal"; }
+                return `<tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="py-2.5 px-3 font-bold text-slate-500">#${item.id}</td>
+                    <td class="py-2.5 px-3 font-semibold text-spark-700">${item.cat}</td>
+                    <td class="py-2.5 px-3">${item.desc}</td>
+                    <td class="py-2.5 px-3 text-center font-black">${m}</td>
+                    <td class="py-2.5 px-3 text-center font-bold">${p}%</td>
+                    <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md border ${bCol}">${bTxt}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderRadarChart(filtered) {
+            const ctx = document.getElementById('chart-radar');
+            if(!ctx) return;
+            const cats = ["Urus Setia Dan Pengurusan", "Lokasi", "Personal", "Bahan"];
+            const data = cats.map(cat => {
+                const items = PK06_ITEMS.filter(i => i.cat === cat);
+                let s=0, c=0;
+                filtered.forEach(e => items.forEach(i => {
+                    const v = e.scores[i.id];
+                    if(v && v!=='TB') { s+=Number(v); c++; }
+                }));
+                return c>0 ? s/c : 0;
+            });
+            if(radarChartInstance) radarChartInstance.destroy();
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: { labels: ["Urus Setia", "Lokasi", "Personal", "Bahan"], datasets: [{ label: 'Purata Skor', data, backgroundColor: 'rgba(14,165,233,0.2)', borderColor: '#0284c7', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5 } } }
+            });
+        }
+
+        function renderBarChart(filtered) {
+            const ctx = document.getElementById('chart-bar');
+            if(!ctx) return;
+            const cats = ["Urus Setia Dan Pengurusan", "Lokasi", "Personal", "Bahan"];
+            const data = cats.map(cat => {
+                const items = PK06_ITEMS.filter(i => i.cat === cat);
+                let s=0, c=0;
+                filtered.forEach(e => items.forEach(i => {
+                    const v = e.scores[i.id];
+                    if(v && v!=='TB') { s+=Number(v); c++; }
+                }));
+                return c>0 ? s/c : 0;
+            });
+            if(barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: ["Urus Setia", "Lokasi", "Personal", "Bahan"], datasets: [{ label: 'Min Skor', data, backgroundColor: ['#38bdf8', '#818cf8', '#34d399', '#fbbf24'], borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5 } } }
+            });
+        }
+
+        function renderRespondentTable(filtered) {
+            const tbody = document.getElementById('respondents-tbody');
+            if(!tbody) return;
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">Tiada rekod penilaian ditemui.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = filtered.map(e => {
+                let s=0, c=0;
+                Object.values(e.scores).forEach(v => { if(v && v!=='TB') { s+=Number(v); c++; }});
+                const mean = c>0 ? (s/c).toFixed(2) : "0.00";
+                return `<tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="py-2.5 px-3 text-slate-500 font-mono">${e.date}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">${e.sector}</td>
+                    <td class="py-2.5 px-3 truncate max-w-[150px]">${e.programTitle}</td>
+                    <td class="py-2.5 px-3 text-center font-bold text-spark-700">${mean}</td>
+                    <td class="py-2.5 px-3 text-slate-500 italic truncate max-w-[200px]">${e.comments || '-'}</td>
+                    <td class="py-2.5 px-3 text-center">
+                        <button onclick="deleteEvaluation('${e.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.renderSectorMatrix = () => {
+            const grid = document.getElementById('sector-matrix-grid');
+            if(!grid) return;
+            const sectors = [...new Set(window.dbPrograms.map(p => p.sector))];
+            if(sectors.length === 0) {
+                grid.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-200">Tiada program wujud. Tambah program untuk melihat matriks pautan borang.</div>`;
+                return;
+            }
+            grid.innerHTML = sectors.map(sec => {
+                const progs = window.dbPrograms.filter(p => p.sector === sec);
+                const evals = window.dbEvaluations.filter(e => e.sector === sec);
+                return `<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                        <h4 class="font-bold text-slate-900 text-xs truncate mr-2">${sec}</h4>
+                        <span class="bg-spark-50 text-spark-700 font-black text-[10px] px-2 py-0.5 rounded border border-spark-200">${evals.length} Maklumbalas</span>
+                    </div>
+                    <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                        ${progs.map(p => `
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-xs flex flex-col gap-1.5">
+                                <div class="flex justify-between items-start">
+                                    <div class="truncate pr-2">
+                                        <p class="font-bold text-slate-800 text-[11px] truncate" title="${p.title}">${p.title}</p>
+                                        <p class="text-[9px] text-slate-400">${p.date}</p>
+                                    </div>
+                                    <button onclick="deleteProgram('${p.id}')" class="text-rose-500 hover:text-rose-700 px-1" title="Padam Program"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
+                                <button onclick="openShareModal('${p.id}')" class="w-full bg-spark-100 hover:bg-spark-200 text-spark-800 border border-spark-200 text-[10px] font-bold py-1.5 rounded transition">Dapatkan QR & Pautan Form</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        window.handleFormSubmit = async (e) => {
+            e.preventDefault();
+            const progId = document.getElementById('form-program-id').value;
+            const prog = window.dbPrograms.find(p => p.id === progId);
+            if (!prog) return alert("Sila pilih program sah.");
+
+            const scores = {};
+            PK06_ITEMS.forEach(item => {
+                const selected = document.querySelector(`input[name="item-${item.id}"]:checked`);
+                scores[item.id] = selected ? selected.value : '4';
+            });
+
+            const newEval = {
+                id: `eval-${Date.now()}`, programId: prog.id, programTitle: prog.title,
+                sector: prog.sector, date: document.getElementById('form-date').value || prog.date,
+                respondentName: document.getElementById('form-respondent-name').value || "Peserta",
+                comments: document.getElementById('form-comments').value || "", scores: scores
+            };
+
+            if (isFirebaseReady) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', newEval.id), newEval);
+            } else {
+                window.dbEvaluations.unshift(newEval);
+                localStorage.setItem('spark_evaluations', JSON.stringify(window.dbEvaluations));
+                window.applyGlobalFilters();
+            }
+            
+            document.getElementById('form-comments').value = "";
+            window.showToast("Borang PK06-1 dihantar berjaya!");
+            window.switchTab('tab-analytics');
+        };
+
+        window.handleCreateProgramSubmit = async (e) => {
+            e.preventDefault();
+            const newProg = {
+                id: `prog-${Date.now()}`, title: document.getElementById('new-prog-title').value.trim(),
+                sector: document.getElementById('new-prog-sector').value,
+                date: document.getElementById('new-prog-date').value,
+                location: document.getElementById('new-prog-location').value
+            };
+            if (isFirebaseReady) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'programs', newProg.id), newProg);
+            } else {
+                window.dbPrograms.unshift(newProg);
+                localStorage.setItem('spark_programs', JSON.stringify(window.dbPrograms));
+                window.populateMasterFilters(); window.populateFormProgramDropdown();
+                window.renderSectorMatrix(); window.applyGlobalFilters();
+            }
+            window.closeNewProgramModal();
+            window.showToast("Program baru berjaya dicipta!");
+        };
+
+        window.deleteProgram = async (id) => {
+            if(!confirm("Anda pasti ingin memadam program ini?")) return;
+            if (isFirebaseReady) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'programs', id));
+            } else {
+                window.dbPrograms = window.dbPrograms.filter(p => p.id !== id);
+                localStorage.setItem('spark_programs', JSON.stringify(window.dbPrograms));
+                window.populateMasterFilters(); window.populateFormProgramDropdown();
+                window.renderSectorMatrix(); window.applyGlobalFilters();
+            }
+            window.showToast("Program berjaya dipadam.");
+        };
+
+        window.deleteEvaluation = async (id) => {
+            if (isFirebaseReady) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', id));
+            } else {
+                window.dbEvaluations = window.dbEvaluations.filter(e => e.id !== id);
+                localStorage.setItem('spark_evaluations', JSON.stringify(window.dbEvaluations));
+                window.applyGlobalFilters();
+            }
+            window.showToast("Rekod penilaian dipadam.");
+        };
+
+        window.clearAllData = async () => {
+            if(!confirm("Kosongkan SEMUA data penilaian borang? Tindakan ini tidak boleh diundur.")) return;
+            if (isFirebaseReady) {
+                const batch = writeBatch(db);
+                window.dbEvaluations.forEach(e => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id)));
+                await batch.commit();
+            } else {
+                window.dbEvaluations = [];
+                localStorage.setItem('spark_evaluations', JSON.stringify([]));
+                window.applyGlobalFilters();
+            }
+            window.showToast("Semua rekod maklumbalas dibersihkan.");
+        };
+
+        window.clearAllPrograms = async () => {
+            if(!confirm("AMARAN: Ini akan memadam SEMUA rekod program dalam sistem. Teruskan?")) return;
+            if (isFirebaseReady) {
+                const batch = writeBatch(db);
+                window.dbPrograms.forEach(p => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'programs', p.id)));
+                await batch.commit();
+            } else {
+                window.dbPrograms = [];
+                localStorage.setItem('spark_programs', JSON.stringify([]));
+                window.populateMasterFilters(); window.populateFormProgramDropdown();
+                window.renderSectorMatrix(); window.applyGlobalFilters();
+            }
+            window.showToast("Semua program dibersihkan.");
+        };
+
+        window.resetToSampleData = async () => {
+            if(!confirm("Kosongkan DB semasa dan mulakan dari data 0 bersih?")) return;
+            
+            if (isFirebaseReady) {
+                // If on Firebase, wipe everything cleanly to start from 0
+                const batch = writeBatch(db);
+                window.dbPrograms.forEach(p => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'programs', p.id)));
+                window.dbEvaluations.forEach(e => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'evaluations', e.id)));
+                await batch.commit();
+                window.showToast("Pangkalan Data Firebase dikosongkan sepenuhnya!");
+            } else {
+                // Local storage reset
+                localStorage.removeItem('spark_programs');
+                localStorage.removeItem('spark_evaluations');
+                window.dbPrograms = [];
+                window.dbEvaluations = [];
+                window.populateMasterFilters(); window.populateFormProgramDropdown();
+                window.renderSectorMatrix(); window.applyGlobalFilters();
+                window.showToast("Dashboard dikosongkan untuk pendaftaran baru!");
+            }
+        };
+
+        window.fillRandomForm = () => {
+            PK06_ITEMS.forEach(item => {
+                const rand = Math.random();
+                const val = rand > 0.8 ? '3' : (rand > 0.4 ? '4' : '5');
+                const radio = document.querySelector(`input[name="item-${item.id}"][value="${val}"]`);
+                if (radio) radio.checked = true;
+            });
+            window.showToast("Simulasi maklumbalas diisi!");
+        };
+
+        window.addMockBatch = async () => {
+            const prog = window.dbPrograms[0];
+            if (!prog) return window.showToast("Tiada program ditemui. Sila cipta program dahulu.");
+            
+            const batchToAdd = [];
+            for (let i=0; i<5; i++) {
+                const scores = {};
+                PK06_ITEMS.forEach(item => { scores[item.id] = Math.random() > 0.8 ? 3 : (Math.random() > 0.3 ? 4 : 5); });
+                batchToAdd.push({
+                    id: `eval-sim-${Date.now()}-${i}`, programId: prog.id, programTitle: prog.title,
+                    sector: prog.sector, date: prog.date, respondentName: `Simulasi #${i+1}`,
+                    comments: "Sangat berpuas hati dengan program.", scores: scores
+                });
+            }
+
+            if (isFirebaseReady && userId) {
+                const batch = writeBatch(db);
+                batchToAdd.forEach(e => batch.set(doc(db, 'artifacts', appId, 'users', userId, 'evaluations', e.id), e));
+                await batch.commit();
+            } else {
+                window.dbEvaluations = [...batchToAdd, ...window.dbEvaluations];
+                localStorage.setItem('spark_evaluations', JSON.stringify(window.dbEvaluations));
+                window.applyGlobalFilters();
+            }
+            window.showToast("+5 Responden rawak ditambah!");
+        };
+
+        window.generateAIAnalysis = async () => {
+            const btn = document.getElementById('btn-generate-ai');
+            const output = document.getElementById('ai-output-container');
+            const apiKey = ""; // Automatically provided by the platform
+            
+            // Generate for currently filtered visible evaluations
+            const y = document.getElementById('filter-year').value;
+            const m = document.getElementById('filter-month').value;
+            const s = document.getElementById('filter-sector').value;
+            const p = document.getElementById('filter-program').value;
+
+            const filteredData = window.dbEvaluations.filter(e => {
+                const d = new Date(e.date);
+                if (y !== 'ALL' && d.getFullYear().toString() !== y) return false;
+                if (m !== 'ALL' && (d.getMonth() + 1).toString() !== m) return false;
+                if (s !== 'ALL' && e.sector !== s) return false;
+                if (p !== 'ALL' && e.programId !== p) return false;
+                return true;
+            });
+
+            if (filteredData.length === 0) {
+                output.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl font-bold border border-rose-200">Tiada data maklumbalas yang sepadan dengan penapis aktif untuk dianalisis.</div>`;
+                return;
+            }
+
+            btn.disabled = true; btn.classList.add('opacity-50');
+            output.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-spinner fa-spin text-3xl text-spark-600 mb-4"></i><p class="font-bold text-slate-700">Model Gemini AI sedang merangka analisis...</p></div>`;
+
+            let itemSummaryList = PK06_ITEMS.map(i => {
+                let sum=0, count=0;
+                filteredData.forEach(e => { if(e.scores[i.id] && e.scores[i.id]!=='TB') { sum+=Number(e.scores[i.id]); count++; } });
+                return `Item #${i.id} (${i.desc}): Min Skor = ${count>0 ? (sum/count).toFixed(2) : 'Tiada'}`;
+            }).join('\n');
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Berdasarkan data berikut (Jumlah Responden: ${filteredData.length}), sila hasilkan analisis berstruktur profesional. Nyatakan:\n1. Rumusan Keseluruhan\n2. 3 Kekuatan Utama\n3. 3 Kelemahan Kritikal\n4. Cadangan Tindakan Penambahbaikan.\n\nData Skor:\n${itemSummaryList}` }] }],
+                        systemInstruction: { parts: [{ text: "Anda adalah Pakar Analisis Kualiti dan Penilai Program Sektor Pendidikan yang bertauliah." }] }
+                    })
+                });
+                const result = await res.json();
+                if(result.error) throw new Error(result.error.message);
+                const text = result.candidates[0].content.parts[0].text;
+                output.innerHTML = `<div class="bg-white p-5 rounded-xl text-xs space-y-4 leading-relaxed border border-slate-200 font-medium text-slate-800">${text.replace(/\n/g, '<br>')}</div>`;
+            } catch(e) {
+                output.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200">Ralat Semasa Menjana AI: ${e.message}</div>`;
+            } finally {
+                btn.disabled = false; btn.classList.remove('opacity-50');
+            }
+        };
+
+        function renderFormItemsUI() {
+            const container = document.getElementById('form-items-container');
+            if(!container) return;
+            const cats = [...new Set(PK06_ITEMS.map(i => i.cat))];
+            container.innerHTML = cats.map(cat => {
+                const items = PK06_ITEMS.filter(i => i.cat === cat);
+                return `<div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-800 text-xs mb-3 uppercase tracking-wider text-spark-700">${cat}</h4>
+                    <div class="space-y-2 divide-y divide-slate-200">
+                        ${items.map(item => `
+                            <div class="pt-2 flex flex-col sm:flex-row justify-between gap-3">
+                                <div class="text-xs font-medium w-full sm:w-1/2"><span class="font-bold text-slate-400">#${item.id}</span> ${item.desc}</div>
+                                <div class="flex gap-2 text-[10px]">
+                                    ${['TB','1','2','3','4','5'].map(val => `
+                                        <label class="flex flex-col items-center cursor-pointer p-1">
+                                            <span class="font-bold text-slate-400">${val}</span>
+                                            <input type="radio" name="item-${item.id}" value="${val}" ${val==='4'?'checked':''} class="accent-spark-600">
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function initApp() {
+            renderFormItemsUI();
+            const dateInput = document.getElementById('form-date');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const progId = urlParams.get('prog');
+            if (progId) {
+                window.switchTab('tab-borang');
+                setTimeout(() => {
+                    const sel = document.getElementById('form-program-id');
+                    if (sel) { sel.value = progId; sel.disabled = true; window.onFormProgramChange(); }
+                    document.getElementById('form-locked-alert').classList.remove('hidden');
+                }, 1000);
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                await signInAnonymously(auth);
+                
+                document.getElementById('firebase-status').innerText = "Firebase Live Mode";
+                document.getElementById('firebase-status').className = "ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700";
+                isFirebaseReady = true;
+
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'programs'), (snap) => {
+                    window.dbPrograms = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    window.populateMasterFilters(); window.populateFormProgramDropdown(); window.renderSectorMatrix();
+                });
+                
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'evaluations'), (snap) => {
+                    window.dbEvaluations = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    window.applyGlobalFilters();
+                });
+
+            } catch (e) {
+                console.warn("Firebase Init Failed, using Local Storage", e);
+                document.getElementById('firebase-status').innerText = "Local DB Mode";
+                document.getElementById('firebase-status').className = "ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700";
+                
+                window.dbPrograms = JSON.parse(localStorage.getItem('spark_programs') || '[]');
+                window.dbEvaluations = JSON.parse(localStorage.getItem('spark_evaluations') || '[]');
+                window.populateMasterFilters(); window.populateFormProgramDropdown();
+                window.renderSectorMatrix(); window.applyGlobalFilters();
+            }
+        }
+
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>
