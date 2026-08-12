@@ -1126,6 +1126,28 @@
             window.showToast("+5 Responden rawak ditambah!");
         };
 
+        // Pangkalan Data Intervensi Pakar PK06-1 (Hardcoded)
+        const INTERVENTION_DB = {
+            1: "Pendaftaran: Wujudkan sistem pendaftaran pra-program (contoh: Google Form/QR) yang boleh diisi peserta dari rumah untuk mengelakkan kesesakan.",
+            2: "Maklumat Mudah: Edarkan buku program, tentatif, atau memo pautan sekurang-kurangnya 2 hari sebelum program bermula di dalam hebahan PPD/sekolah.",
+            3: "Pengurusan Teratur: Wujudkan Jawatankuasa Kerja yang spesifik (bukan ad-hoc) dengan senarai semak (checklist) yang diuji lari (dry run) sebelum hari kejadian.",
+            4: "Bantuan Urus Setia: Lantik 'Floor Manager' atau pegawai perhubungan (LO) yang sentiasa bersedia di lokasi dengan jaket/tag nama yang mudah dicari peserta.",
+            5: "Tempat Sesuai: Lakukan lawatan tapak (site visit) lebih awal. Jika tidak sesuai, tukar kepada format hibrid atau cari lokasi berpusat alternatif.",
+            6: "Dewan Sesuai: Susun atur kerusi dan meja perlulah mengambil kira ruang selesa untuk bengkel (contoh: susunan kluster), pengudaraan, dan kualiti PA Sistem.",
+            7: "Peralatan/Alat Tulis: Sediakan pautan muat turun perisian lebih awal jika guna laptop, atau siapkan 'kit peserta' standard yang mengandungi fail dan nota asas.",
+            8: "Dewan Makan (Bersih): Minta pembekal makanan (caterer) mengemas sisa sejurus selepas makan dan pastikan tong sampah mencukupi.",
+            9: "Kualiti Makanan: Pantau pematuhan spesifikasi menu Makanan Bermasak. Buat uji rasa (food tasting) atau tukar pembekal jika maklum balas konsisten teruk.",
+            10: "Kuantiti Makanan: Pesan makanan dengan margin tambahan 5-10% daripada jumlah disahkan bagi menampung kesilapan pengagihan atau urus setia.",
+            11: "Peningkatan Prestasi: Pastikan modul yang dibawa oleh penceramah adalah selaras dengan dasar terbaharu KPM/JPN dan bersifat penyelesaian masalah praktikal.",
+            12: "Keyakinan Diri: Kurangkan ceramah satu hala (teori). Perbanyakkan sesi amali (hands-on), main peranan (roleplay), atau kajian kes.",
+            13: "Tempoh Masa: Semak semula jadual yang terlalu padat. Buang slot yang tidak kritikal untuk memberi lebih masa kepada perbincangan (Q&A) yang mendalam.",
+            14: "Kursus Dalaman (LDP): Sediakan 'Training of Trainers (TOT) Kit' atau slaid pembentangan versi boleh sunting untuk peserta bawa balik ke sekolah.",
+            15: "Bahan Berguna: Wujudkan repositori tunggal (seperti Google Drive/Site khas program) yang kekal aktif selama sekurang-kurangnya setahun selepas program.",
+            16: "Bahan Membantu: Arahkan penceramah untuk membekalkan templat, instrumen contoh, atau rubrik pemarkahan sebenar berbanding nota kosong.",
+            17: "Mudah Difahami: Gunakan visual, infografik, dan ringkasan eksekutif. Kurangkan slaid yang dipenuhi teks padat (wall of text).",
+            18: "Jelas: Jika guna bahan bercetak, pastikan saiz font dan kualiti cetakan jelas. Lebih baik bertukar kepada perkongsian bahan digital sepenuhnya."
+        };
+
         window.generateAIAnalysis = async () => {
             const btn = document.getElementById('btn-generate-ai');
             const output = document.getElementById('ai-output-container');
@@ -1151,55 +1173,131 @@
             }
 
             btn.disabled = true; btn.classList.add('opacity-50');
-            output.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-spinner fa-spin text-3xl text-spark-600 mb-4"></i><p class="font-bold text-slate-700">Model Gemini AI sedang merangka analisis mendalam...</p></div>`;
+            output.innerHTML = `<div class="text-center py-12"><i class="fa-solid fa-spinner fa-spin text-3xl text-spark-600 mb-4"></i><p class="font-bold text-slate-700">Enjin Analisis Pintar SPARK sedang memproses maklumat...</p></div>`;
 
-            let itemSummaryList = PK06_ITEMS.map(i => {
-                let sum=0, count=0;
-                filteredData.forEach(e => { if(e.scores[i.id] && e.scores[i.id]!=='TB') { sum+=Number(e.scores[i.id]); count++; } });
-                return `Item #${i.id} (${i.desc}): Min Skor = ${count>0 ? (sum/count).toFixed(2) : 'Tiada'}`;
-            }).join('\n');
-
-            try {
-                // Tiada pengesahan API Key di pihak frontend, gunakan rentetan kosong
-                const apiKey = ""; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-                const systemPrompt = "Anda adalah Pakar Analisis Kualiti dan Penilai Program Sektor Pendidikan yang bertauliah dari Malaysia. Jawab dalam Bahasa Melayu yang profesional.";
-                const userQuery = `Berdasarkan data berikut (Jumlah Responden: ${filteredData.length}), sila hasilkan laporan analisis berstruktur profesional. Nyatakan:\n1. Rumusan Keseluruhan (Satu Perenggan)\n2. 3 Kekuatan Utama\n3. 3 Kelemahan Kritikal (Kawasan perlu dibaiki)\n4. Cadangan Pelan Tindakan Penambahbaikan Berimpak Tinggi.\n\nData Skor Likert (1-5):\n${itemSummaryList}`;
-
-                const res = await fetch(apiUrl, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userQuery }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
+            // Proses Pengiraan Tempatan (Sistem Pakar)
+            setTimeout(() => {
+                // 1. Kira min bagi setiap 18 item
+                let overallSum = 0;
+                let overallCount = 0;
+                
+                let itemStats = PK06_ITEMS.map(i => {
+                    let sum = 0, count = 0;
+                    filteredData.forEach(e => { 
+                        if(e.scores[i.id] && e.scores[i.id] !== 'TB') { 
+                            const val = Number(e.scores[i.id]);
+                            sum += val; 
+                            count++; 
+                            overallSum += val;
+                            overallCount++;
+                        } 
+                    });
+                    return {
+                        id: i.id,
+                        cat: i.cat,
+                        desc: i.desc,
+                        mean: count > 0 ? (sum/count) : 0
+                    };
                 });
-                
-                const result = await res.json();
-                if(result.error) throw new Error(result.error.message);
-                
-                let text = result.candidates[0].content.parts[0].text;
-                // Format basic markdown bolding to HTML
-                text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>');
-                text = text.replace(/\n/g, '<br>');
 
-                output.innerHTML = `
-                    <div class="prose prose-slate max-w-none space-y-4">
-                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200 flex flex-wrap items-center justify-between text-xs font-bold text-emerald-900 gap-2">
-                            <span><i class="fa-solid fa-check-circle text-emerald-600 mr-1"></i> Analisis Berjaya Dijana (Gemini AI)</span>
-                            <span class="bg-emerald-100 px-2 py-0.5 rounded text-[10px]">Analisis ${filteredData.length} Responden</span>
+                const totalMean = overallCount > 0 ? (overallSum / overallCount).toFixed(2) : "0.00";
+
+                // 2. Asingkan item yang mempunyai data sahaja dan susun ikut min
+                let validItems = itemStats.filter(i => i.mean > 0);
+                validItems.sort((a, b) => a.mean - b.mean);
+
+                if (validItems.length === 0) {
+                    output.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200">Data tidak mencukupi untuk menjana laporan.</div>`;
+                    btn.disabled = false; btn.classList.remove('opacity-50');
+                    return;
+                }
+
+                // 3. Kenal pasti 3 Kekuatan (Skor Tertinggi) dan 3 Kelemahan (Skor Terendah)
+                const top3 = [...validItems].sort((a, b) => b.mean - a.mean).slice(0, 3);
+                const bottom3 = validItems.slice(0, 3);
+
+                // 4. Mula membina HTML Laporan
+                let htmlReport = `
+                    <div class="prose prose-slate max-w-none space-y-5 text-slate-700">
+                        <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-200 flex flex-wrap items-center justify-between text-xs font-bold text-indigo-900 gap-2">
+                            <span><i class="fa-solid fa-microchip text-indigo-600 mr-1"></i> Analisis Enjin Pintar Tempatan (Tanpa API)</span>
+                            <span class="bg-indigo-100 px-2 py-0.5 rounded text-[10px]">Analisis ${filteredData.length} Responden</span>
                         </div>
-                        <div class="bg-white p-5 rounded-xl text-xs space-y-3 leading-relaxed border border-slate-200 font-medium text-slate-700">
-                            ${text}
+                        
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 text-xs leading-relaxed space-y-4">
+                            
+                            <div>
+                                <h4 class="font-black text-slate-800 text-sm border-b border-slate-100 pb-2 mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-pie text-spark-600"></i> Rumusan Eksekutif
+                                </h4>
+                                <p>Berdasarkan analisis kepada <strong>${filteredData.length} responden</strong>, purata skor keseluruhan untuk pemantauan ini adalah <strong>${totalMean} / 5.00</strong>. Prestasi ini menunjukkan penerimaan program berada di tahap <strong>${Number(totalMean) >= 4.0 ? 'Sangat Memuaskan' : (Number(totalMean) >= 3.0 ? 'Sederhana' : 'Perlu Perhatian Serius')}</strong>.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                                    <h4 class="font-bold text-emerald-800 border-b border-emerald-100 pb-2 mb-3 flex items-center gap-2">
+                                        <i class="fa-solid fa-arrow-trend-up text-emerald-600"></i> 3 Kekuatan Utama
+                                    </h4>
+                                    <ul class="space-y-2 list-none p-0 m-0">
+                                        ${top3.map(i => `
+                                            <li class="flex items-start gap-2">
+                                                <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
+                                                <div>
+                                                    <span class="font-bold text-slate-700">${i.desc}</span>
+                                                    <div class="text-[10px] text-emerald-600 font-bold">Skor: ${i.mean.toFixed(2)}</div>
+                                                </div>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+
+                                <div class="bg-rose-50/50 p-4 rounded-xl border border-rose-100">
+                                    <h4 class="font-bold text-rose-800 border-b border-rose-100 pb-2 mb-3 flex items-center gap-2">
+                                        <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> 3 Kawasan Kritikal
+                                    </h4>
+                                    <ul class="space-y-2 list-none p-0 m-0">
+                                        ${bottom3.map(i => `
+                                            <li class="flex items-start gap-2">
+                                                <i class="fa-solid fa-circle-xmark text-rose-500 mt-0.5"></i>
+                                                <div>
+                                                    <span class="font-bold text-slate-700">${i.desc}</span>
+                                                    <div class="text-[10px] text-rose-600 font-bold">Skor: ${i.mean.toFixed(2)}</div>
+                                                </div>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-slate-100">
+                                <h4 class="font-black text-slate-800 text-sm mb-3 flex items-center gap-2">
+                                    <i class="fa-solid fa-lightbulb text-amber-500"></i> Cadangan Pelan Intervensi / Tindakan
+                                </h4>
+                                <div class="space-y-3">
+                                    ${bottom3.map(i => `
+                                        <div class="bg-amber-50/30 p-3 rounded-lg border border-amber-100/50">
+                                            <p class="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
+                                                <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[9px]">Item #${i.id}</span>
+                                                ${i.desc}
+                                            </p>
+                                            <p class="text-slate-600 italic">
+                                                <i class="fa-solid fa-arrow-turn-up text-amber-400 rotate-90 inline-block mr-1"></i>
+                                                Tindakan: ${INTERVENTION_DB[i.id] || "Bincang bersama pengurusan tertinggi untuk mencari penyelesaian spesifik."}
+                                            </p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 `;
-            } catch(e) {
-                output.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200 space-y-2"><strong>Ralat Semasa Menjana AI:</strong> ${e.message}<br><p class="text-[11px] text-rose-600 bg-white p-2 border border-rose-100 rounded">Ralat berlaku semasa menyambung ke pelayan Google AI. Ini mungkin disebabkan oleh had akses terus tanpa pelayan proksi.</p></div>`;
-            } finally {
+
+                output.innerHTML = htmlReport;
                 btn.disabled = false; btn.classList.remove('opacity-50');
-            }
+
+            }, 800); // Simulasi kelewatan loading sikit supaya nampak 'sistem sedang berfikir'
+            
         };
 
         function renderFormItemsUI() {
